@@ -258,7 +258,9 @@
         .card.protein .card-value,
         .card.carbs .card-value,
         .card.fats .card-value {
-            font-size: 32px;
+            font-size: 42px;
+            text-align: left;
+            align-self: flex-start;
         }
 
         /* Responsive design */
@@ -312,7 +314,9 @@
             .card.protein .card-value,
             .card.carbs .card-value,
             .card.fats .card-value {
-                font-size: 20px;
+                font-size: 32px;
+                text-align: left;
+                align-self: flex-start;
             }
             
             .progress-container {
@@ -521,9 +525,9 @@
 
                 // Update subtitles to show remaining amounts
                 document.querySelector('.card.calories .card-subtitle').textContent = 'Left';
-                document.querySelector('.card.protein .card-subtitle').textContent = 'Left';
-                document.querySelector('.card.carbs .card-subtitle').textContent = 'Left';
-                document.querySelector('.card.fats .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.protein .card-subtitle').textContent = 'Protein Left';
+                document.querySelector('.card.carbs .card-subtitle').textContent = 'Carbs Left';
+                document.querySelector('.card.fats .card-subtitle').textContent = 'Fats Left';
             }
 
             updateProgressRings() {
