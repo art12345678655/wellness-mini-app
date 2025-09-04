@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Activity Rings</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .rings-container {
+            position: relative;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        
+        canvas {
+            display: block;
+            margin: 0 auto;
+            width: 300px;
+            height: 300px;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+        
+
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .control-group label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .control-group input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .update-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .update-btn:hover {
+            background: #0056CC;
+        }
+        
+        .stats {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            padding: 12px 15px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            min-width: 90px;
+            flex-shrink: 0;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍎 Nutrition Activity Rings</h1>
+        <p style="color: #666; margin-bottom: 20px;">Track your daily nutrition progress with Apple Fitness-style rings</p>
+        
+        <div class="rings-container">
+            <canvas id="nutritionRings" width="600" height="600"></canvas>
+        </div>
+        
+
+        
+        <div class="stats">
+            <div class="stat-item" id="caloriesStatBox" style="background: #E07B52;">
+                <div class="stat-value" id="caloriesStat">125%</div>
+                <div class="stat-label">CALORIES</div>
+            </div>
+            <div class="stat-item" id="proteinStatBox" style="background: #4CA6A8;">
+                <div class="stat-value" id="proteinStat">67%</div>
+                <div class="stat-label">PROTEIN</div>
+            </div>
+            <div class="stat-item" id="fatStatBox" style="background: #FBE8A6;">
+                <div class="stat-value" id="fatStat">115%</div>
+                <div class="stat-label">FAT</div>
+            </div>
+            <div class="stat-item" id="carbsStatBox" style="background: #A7C796;">
+                <div class="stat-value" id="carbsStat">80%</div>
+                <div class="stat-label">CARBS</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Calories</label>
+                <input type="number" id="caloriesInput" value="2500" placeholder="Current">
+                <input type="number" id="caloriesTarget" value="2000" placeholder="Target">
+            </div>
+            <div class="control-group">
+                <label>Protein (g)</label>
+                <input type="number" id="proteinInput" value="80" placeholder="Current">
+                <input type="number" id="proteinTarget" value="120" placeholder="Target">
+            </div>
+            <div class="control-group">
+                <label>Fat (g)</label>
+                <input type="number" id="fatInput" value="80" placeholder="Current">
+                <input type="number" id="fatTarget" value="70" placeholder="Target">
+            </div>
+            <div class="control-group">
+                <label>Carbs (g)</label>
+                <input type="number" id="carbsInput" value="200" placeholder="Current">
+                <input type="number" id="carbTarget" value="250" placeholder="Target">
+            </div>
+        </div>
+        
+        <button class="update-btn" onclick="updateRings()">Update Rings</button>
+    </div>
+
+    <script>
+        class NutritionRings {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Enable high-quality rendering
+                this.ctx.imageSmoothingEnabled = true;
+                this.ctx.imageSmoothingQuality = 'high';
+                
+                // Set device pixel ratio for crisp rendering
+                const dpr = window.devicePixelRatio || 1;
+                const rect = this.canvas.getBoundingClientRect();
+                
+                // Set actual canvas size in memory
+                this.canvas.width = rect.width * dpr;
+                this.canvas.height = rect.height * dpr;
+                
+                // Scale the drawing context so everything draws at the correct size
+                this.ctx.scale(dpr, dpr);
+                
+                // Set the CSS size
+                this.canvas.style.width = rect.width + 'px';
+                this.canvas.style.height = rect.height + 'px';
+                
+                this.centerX = rect.width / 2;
+                this.centerY = rect.height / 2;
+                
+                // Ring configuration - wider rings with no gaps between them
+                // Each ring radius is calculated to eliminate gaps: outer radius = previous inner radius
+                this.rings = [
+                    { name: 'calories', color: '#E07B52', radius: 120, thickness: 20, progress: 1.25 }, // 125%
+                    { name: 'protein', color: '#4CA6A8', radius: 100, thickness: 20, progress: 0.67 },  // 67%
+                    { name: 'fat', color: '#FBE8A6', radius: 80, thickness: 20, progress: 1.15 },     // 115%
+                    { name: 'carbs', color: '#A7C796', radius: 60, thickness: 20, progress: 0.80 }    // 80%
+                ];
+                
+                this.animationFrame = null;
+                this.init();
+            }
+            
+            init() {
+                this.draw();
+                this.animateProgress();
+            }
+            
+            draw() {
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw background rings (empty) - draw from outer to inner
+                this.rings.forEach(ring => {
+                    this.drawRing(ring.radius, ring.thickness, '#f0f0f0', 1, 0, 2 * Math.PI);
+                });
+                
+                // Draw progress rings - draw from outer to inner for proper layering
+                this.rings.forEach(ring => {
+                    this.drawProgressRing(ring);
+                });
+                
+                // Draw center labels
+                this.drawCenterLabels();
+                
+
+            }
+            
+            drawRing(radius, thickness, color, lineWidth, startAngle, endAngle) {
+                this.ctx.save();
+                this.ctx.lineWidth = thickness;
+                this.ctx.strokeStyle = color;
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                
+                // Enable anti-aliasing
+                this.ctx.imageSmoothingEnabled = true;
+                this.ctx.imageSmoothingQuality = 'high';
+                
+                this.ctx.beginPath();
+                this.ctx.arc(this.centerX, this.centerY, radius, startAngle, endAngle);
+                this.ctx.stroke();
+                this.ctx.restore();
+            }
+            
+            drawProgressRing(ring) {
+                const startAngle = -Math.PI / 2; // Start at 12 o'clock
+                
+
+                
+                // Handle overlapping effect when progress > 100%
+                let endAngle, isOverlapping;
+                if (ring.progress > 1) {
+                    // For overlapping, draw full circle + extra
+                    endAngle = startAngle + (2 * Math.PI) + (2 * Math.PI * (ring.progress - 1));
+                    isOverlapping = true;
+                } else {
+                    endAngle = startAngle + (2 * Math.PI * ring.progress);
+                    isOverlapping = false;
+                }
+                
+                // Create gradient for smooth appearance
+                const gradient = this.ctx.createRadialGradient(
+                    this.centerX, this.centerY, ring.radius - ring.thickness,
+                    this.centerX, this.centerY, ring.radius + ring.thickness
+                );
+                gradient.addColorStop(0, ring.color);
+                gradient.addColorStop(1, this.adjustBrightness(ring.color, -20));
+                
+                this.ctx.save();
+                this.ctx.lineWidth = ring.thickness;
+                this.ctx.strokeStyle = gradient;
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                
+                // Enable anti-aliasing
+                this.ctx.imageSmoothingEnabled = true;
+                this.ctx.imageSmoothingQuality = 'high';
+                
+                // Draw the main progress arc
+                this.ctx.beginPath();
+                this.ctx.arc(this.centerX, this.centerY, ring.radius, startAngle, endAngle);
+                this.ctx.stroke();
+                
+                // If overlapping, draw additional overlapping effect
+                if (isOverlapping) {
+                    // Draw overlapping indicator (darker, slightly larger)
+                    const overlapGradient = this.ctx.createRadialGradient(
+                        this.centerX, this.centerY, ring.radius - ring.thickness,
+                        this.centerX, this.centerY, ring.radius + ring.thickness
+                    );
+                    overlapGradient.addColorStop(0, this.adjustBrightness(ring.color, -30));
+                    overlapGradient.addColorStop(1, this.adjustBrightness(ring.color, -50));
+                    
+                    this.ctx.strokeStyle = overlapGradient;
+                    this.ctx.lineWidth = ring.thickness + 2;
+                    
+                    // Draw overlapping portion
+                    const overlapStart = startAngle + (2 * Math.PI);
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.centerX, this.centerY, ring.radius, overlapStart, endAngle);
+                    this.ctx.stroke();
+                }
+                
+                this.ctx.restore();
+                
+                // Don't draw percentage labels on the rings
+                // this.drawRingLabel(ring);
+            }
+            
+            drawRingLabel(ring) {
+                const labelRadius = ring.radius - ring.thickness / 2 - 15;
+                
+                // Handle label positioning for overlapping rings
+                let labelAngle, displayText;
+                if (ring.progress > 1) {
+                    // For overlapping, show the overlapping portion
+                    labelAngle = -Math.PI / 2 + (Math.PI * 1.5); // Position at 3 o'clock
+                    displayText = `${Math.round(ring.progress * 100)}%`;
+                } else {
+                    labelAngle = -Math.PI / 2 + (Math.PI * ring.progress);
+                    displayText = `${Math.round(ring.progress * 100)}%`;
+                }
+                
+                const x = this.centerX + labelRadius * Math.cos(labelAngle);
+                const y = this.centerY + labelRadius * Math.sin(labelAngle);
+                
+                this.ctx.save();
+                this.ctx.fillStyle = '#333';
+                this.ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                
+                // Add white outline for better visibility
+                this.ctx.strokeStyle = 'white';
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeText(displayText, x, y);
+                
+                this.ctx.fillText(displayText, x, y);
+                this.ctx.restore();
+            }
+            
+            drawCenterLabels() {
+                // No center labels - clean, minimal design
+                // this.ctx.save();
+                // this.ctx.fillStyle = '#333';
+                // this.ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, sans-serif';
+                // this.ctx.textAlign = 'center';
+                // this.ctx.textBaseline = 'middle';
+                
+                // // Draw ring names in the center
+                // const centerY = this.centerY - 10;
+                // this.ctx.fillText('Nutrition', this.centerX, centerY - 20);
+                // this.ctx.fillText('Progress', this.centerX, centerY);
+                // this.ctx.restore();
+            }
+            
+            adjustBrightness(hex, percent) {
+                const num = parseInt(hex.replace("#", ""), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                    (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+            }
+            
+            animateProgress() {
+                let currentProgress = 0;
+                const targetProgress = this.rings.map(ring => ring.progress);
+                
+                const animate = () => {
+                    currentProgress += 0.02;
+                    if (currentProgress >= 1) {
+                        currentProgress = 1;
+                    }
+                    
+                    this.rings.forEach((ring, index) => {
+                        ring.progress = targetProgress[index] * currentProgress;
+                    });
+                    
+                    this.draw();
+                    
+                    if (currentProgress < 1) {
+                        this.animationFrame = requestAnimationFrame(animate);
+                    }
+                };
+                
+                animate();
+            }
+            
+            updateProgress(newProgress) {
+                this.rings.forEach(ring => {
+                    if (newProgress[ring.name] !== undefined) {
+                        ring.progress = Math.max(newProgress[ring.name], 0); // Allow values > 100%
+                    }
+                });
+                
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                }
+                
+                this.animateProgress();
+            }
+            
+            handleResize() {
+                // Recalculate canvas size and center for high quality
+                const dpr = window.devicePixelRatio || 1;
+                const rect = this.canvas.getBoundingClientRect();
+                
+                // Set actual canvas size in memory
+                this.canvas.width = rect.width * dpr;
+                this.canvas.height = rect.height * dpr;
+                
+                // Scale the drawing context
+                this.ctx.scale(dpr, dpr);
+                
+                // Update center coordinates
+                this.centerX = rect.width / 2;
+                this.centerY = rect.height / 2;
+                
+                // Redraw with new dimensions
+                this.draw();
+            }
+        }
+        
+        // Initialize the rings
+        let nutritionRings;
+        
+        function initRings() {
+            nutritionRings = new NutritionRings('nutritionRings');
+        }
+        
+        function updateRings() {
+            const calories = parseFloat(document.getElementById('caloriesInput').value) || 0;
+            const caloriesTarget = parseFloat(document.getElementById('caloriesTarget').value) || 1;
+            const protein = parseFloat(document.getElementById('proteinInput').value) || 0;
+            const proteinTarget = parseFloat(document.getElementById('proteinTarget').value) || 1;
+            const fat = parseFloat(document.getElementById('fatInput').value) || 0;
+            const fatTarget = parseFloat(document.getElementById('fatTarget').value) || 1;
+            const carbs = parseFloat(document.getElementById('carbsInput').value) || 0;
+            const carbsTarget = parseFloat(document.getElementById('carbTarget').value) || 1;
+            
+            const progress = {
+                calories: calories / caloriesTarget,
+                protein: protein / proteinTarget,
+                fat: fat / fatTarget,
+                carbs: carbs / carbsTarget
+            };
+            
+            // Update stats display
+            document.getElementById('caloriesStat').textContent = Math.round(progress.calories * 100) + '%';
+            document.getElementById('proteinStat').textContent = Math.round(progress.protein * 100) + '%';
+            document.getElementById('fatStat').textContent = Math.round(progress.fat * 100) + '%';
+            document.getElementById('carbsStat').textContent = Math.round(progress.carbs * 100) + '%';
+            
+            // Update rings
+            nutritionRings.updateProgress(progress);
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', initRings);
+        
+        // Handle window resize for high-quality rendering
+        window.addEventListener('resize', () => {
+            if (nutritionRings) {
+                nutritionRings.handleResize();
+            }
+        });
+        
+        // Example data structure for easy integration
+        function setNutritionData(data) {
+            // Example: const data = { calories: 1500/2000, protein: 80/120, fat: 50/70, carbs: 200/250 };
+            const progress = {
+                calories: data.calories,
+                protein: data.protein,
+                fat: data.fat,
+                carbs: data.carbs
+            };
+            
+            nutritionRings.updateProgress(progress);
+        }
+    </script>
+</body>
+</html>
