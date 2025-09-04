@@ -249,17 +249,25 @@
             }
             
             .card {
-                padding: 20px;
+                padding: 16px;
             }
-            
+
             .card.calories {
                 padding: 12px;
                 height: 100px;
             }
+
+            .card.protein,
+            .card.fats,
+            .card.carbs {
+                padding: 12px;
+                flex: 1;
+                min-width: 0;
+            }
             
             .small-cards {
-                flex-direction: column;
-                gap: 16px;
+                flex-direction: row;
+                gap: 12px;
             }
             
             .card-value {
@@ -273,7 +281,7 @@
             .card.protein .card-value,
             .card.carbs .card-value,
             .card.fats .card-value {
-                font-size: 28px;
+                font-size: 24px;
             }
             
             .progress-container {
