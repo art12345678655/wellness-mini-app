@@ -35,8 +35,32 @@ class MiniAppServer:
             user_data = await self.db.get_user_nutrition_data(user_id)
 
             # Read the HTML template
-            with open('nutrition_rings.html', 'r', encoding='utf-8') as f:
-                html_content = f.read()
+            import os
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            html_file_path = os.path.join(current_dir, 'nutrition_rings.html')
+
+            try:
+                with open(html_file_path, 'r', encoding='utf-8') as f:
+                    html_content = f.read()
+            except FileNotFoundError:
+                # Fallback: try to find the file in different locations
+                possible_paths = [
+                    'nutrition_rings.html',
+                    './nutrition_rings.html',
+                    '../nutrition_rings.html',
+                    '/opt/render/project/src/nutrition_rings.html'
+                ]
+                html_content = None
+                for path in possible_paths:
+                    try:
+                        with open(path, 'r', encoding='utf-8') as f:
+                            html_content = f.read()
+                            break
+                    except FileNotFoundError:
+                        continue
+
+                if html_content is None:
+                    return web.Response(text="❌ HTML template not found", status=500)
 
             # Inject real user data
             html_content = self.inject_user_data(html_content, user_data)
@@ -60,15 +84,20 @@ class MiniAppServer:
                 }, 30000);
 
                 // Show loading state
+                console.log('Mini app loaded for user: ''' + str(user_id) + ''');
+                console.log('Telegram WebApp ready:', tg);
+
                 tg.MainButton.setText('Loading...');
                 setTimeout(() => {
                     tg.MainButton.setText('Nutrition Dashboard');
+                    console.log('Nutrition Dashboard ready');
                 }, 1000);
             </script>
             '''
 
             html_content = html_content.replace('</head>', f'{telegram_script}</head>')
 
+            logger.info(f"✅ Successfully served dashboard for user {user_id}")
             return web.Response(text=html_content, content_type='text/html')
 
         except Exception as e:
@@ -134,6 +163,40 @@ class MiniAppServer:
             logger.error(f"Error getting user data: {e}")
             return web.json_response({"error": str(e)}, status=500)
 
+    async def test_dashboard(self, request):
+        """Test endpoint that returns a simple dashboard without user data"""
+        try:
+            import os
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            html_file_path = os.path.join(current_dir, 'nutrition_rings.html')
+
+            try:
+                with open(html_file_path, 'r', encoding='utf-8') as f:
+                    html_content = f.read()
+            except FileNotFoundError:
+                return web.Response(text=f"❌ HTML file not found at {html_file_path}", status=500)
+
+            # Add basic Telegram WebApp integration
+            telegram_script = '''
+            <script src="https://telegram.org/js/telegram-web-app.js"></script>
+            <script>
+                console.log('Test Mini app loaded');
+                const tg = window.Telegram.WebApp;
+                tg.expand();
+                tg.ready();
+                console.log('Telegram WebApp test ready:', tg);
+                tg.MainButton.setText('Test Dashboard');
+            </script>
+            '''
+
+            html_content = html_content.replace('</head>', f'{telegram_script}</head>')
+
+            logger.info("✅ Test dashboard served successfully")
+            return web.Response(text=html_content, content_type='text/html')
+        except Exception as e:
+            logger.error(f"❌ Error serving test dashboard: {e}")
+            return web.Response(text=f"❌ Test dashboard error: {str(e)}", status=500)
+
 
 async def create_app():
     """Create the web application"""
@@ -142,6 +205,7 @@ async def create_app():
     web_app = web.Application()
     web_app.router.add_get('/', app.nutrition_dashboard)
     web_app.router.add_get('/nutrition-dashboard', app.nutrition_dashboard)
+    web_app.router.add_get('/test', app.test_dashboard)
     web_app.router.add_get('/health', app.health_check)
     web_app.router.add_get('/api/user/{user_id}', app.api_user_data)
 
