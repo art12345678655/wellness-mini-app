@@ -24,7 +24,7 @@
             align-items: flex-start;
             padding: 5px 20px 20px 20px;
         }
-
+        
         .container {
             width: 100%;
             max-width: 400px;
@@ -99,7 +99,7 @@
                 0 8px 32px rgba(0, 0, 0, 0.1),
                 0 0 20px rgba(150, 184, 255, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            height: 140px;
+            height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -114,7 +114,7 @@
                 0 8px 32px rgba(0, 0, 0, 0.1),
                 0 0 20px rgba(167, 199, 150, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            height: 140px;
+            height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -129,7 +129,7 @@
                 0 8px 32px rgba(0, 0, 0, 0.1),
                 0 0 20px rgba(249, 254, 134, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            height: 140px;
+            height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -200,7 +200,7 @@
             justify-content: center;
             flex-shrink: 0;
         }
-
+        
         .card.calories .progress-container {
             width: 110px;
             height: 110px;
@@ -286,7 +286,7 @@
                 min-width: 0;
                 width: 0;
                 box-sizing: border-box;
-                height: 120px; /* Increased height for full visibility */
+                height: 160px; /* Much taller for full visibility */
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -334,7 +334,7 @@
             .card.protein .ring-emoji,
             .card.fats .ring-emoji,
             .card.carbs .ring-emoji {
-                font-size: 20px;
+                font-size: 24px;
             }
             
             .input-grid {
@@ -372,7 +372,7 @@
         .card.protein .ring-emoji,
         .card.fats .ring-emoji,
         .card.carbs .ring-emoji {
-            font-size: 24px;
+            font-size: 28px;
         }
 
         /* Protein emoji styling */
@@ -397,10 +397,10 @@
                     </svg>
                     <div class="ring-emoji">🔥</div>
                 </div>
-            </div>
-            
+        </div>
+        
 
-            
+        
         </div>
 
         <!-- Small Cards Row -->
@@ -419,7 +419,7 @@
                         </svg>
                         <div class="ring-emoji">🍗</div>
                     </div>
-                </div>
+            </div>
             </div>
 
             <!-- Fats Card -->
@@ -427,7 +427,7 @@
                 <div class="card-header">
                     <div class="card-value" id="fatsValue">61</div>
                     <div class="card-subtitle">fats left</div>
-                </div>
+            </div>
                 <div class="card-content">
                     <div class="progress-container">
                         <svg class="progress-ring" viewBox="0 0 100 100">
@@ -435,8 +435,8 @@
                             <circle class="progress-ring-fill" cx="50" cy="50" r="40" id="fatsProgress"></circle>
                         </svg>
                         <div class="ring-emoji">🥑</div>
-                    </div>
-                </div>
+            </div>
+        </div>
             </div>
 
             <!-- Carbs Card -->
@@ -452,11 +452,11 @@
                             <circle class="progress-ring-fill" cx="50" cy="50" r="40" id="carbsProgress"></circle>
                         </svg>
                         <div class="ring-emoji">🌾</div>
-                    </div>
-                </div>
+            </div>
+            </div>
             </div>
         </div>
-
+        
     </div>
 
     <script>
@@ -496,7 +496,7 @@
 
                 this.init();
             }
-
+            
             init() {
                 this.updateValues();
                 this.updateProgressRings();
@@ -593,4 +593,3 @@
     </script>
 </body>
 </html>
- 
