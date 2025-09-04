@@ -202,8 +202,8 @@
         }
 
         .card.calories .progress-container {
-            width: 95px;
-            height: 95px;
+            width: 80px;
+            height: 80px;
         }
 
         .progress-ring {
@@ -321,8 +321,8 @@
             }
 
             .card.calories .progress-container {
-                width: 70px;
-                height: 70px;
+                width: 60px;
+                height: 60px;
             }
 
             .progress-ring-bg,
@@ -365,7 +365,7 @@
 
         /* Emoji for smaller calories ring */
         .card.calories .ring-emoji {
-            font-size: 24px;
+            font-size: 20px;
         }
 
         /* Larger emoji for nutrition rings */
@@ -519,11 +519,11 @@
                 document.getElementById('carbsValue').textContent = this.getRemaining('carbs') + 'g';
                 document.getElementById('fatsValue').textContent = this.getRemaining('fats') + 'g';
 
-                // Update subtitles to show consumed amounts
-                document.querySelector('.card.calories .card-subtitle').textContent = `${this.userProfile.consumed.calories} cal consumed`;
-                document.querySelector('.card.protein .card-subtitle').textContent = `${this.userProfile.consumed.protein}g consumed`;
-                document.querySelector('.card.carbs .card-subtitle').textContent = `${this.userProfile.consumed.carbs}g consumed`;
-                document.querySelector('.card.fats .card-subtitle').textContent = `${this.userProfile.consumed.fats}g consumed`;
+                // Update subtitles to show remaining amounts
+                document.querySelector('.card.calories .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.protein .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.carbs .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.fats .card-subtitle').textContent = 'Left';
             }
 
             updateProgressRings() {
