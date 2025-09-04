@@ -21,8 +21,8 @@
             min-height: 100vh;
             display: flex;
             justify-content: flex-start;
-            align-items: center;
-            padding: 10px 20px 20px 20px;
+            align-items: flex-start;
+            padding: 5px 20px 20px 20px;
         }
 
         .container {
@@ -95,28 +95,46 @@
         .card.protein {
             background: #a3bffb;
             color: #1a1a1a;
-            box-shadow: 
+            box-shadow:
                 0 8px 32px rgba(0, 0, 0, 0.1),
                 0 0 20px rgba(150, 184, 255, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
         }
 
         .card.carbs {
             background: #a7ffd7;
             color: #1a1a1a;
-            box-shadow: 
+            box-shadow:
                 0 8px 32px rgba(0, 0, 0, 0.1),
                 0 0 20px rgba(167, 199, 150, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
         }
 
         .card.fats {
             background: #ffcd98;
             color: #1a1a1a;
-            box-shadow: 
+            box-shadow:
                 0 8px 32px rgba(0, 0, 0, 0.1),
                 0 0 20px rgba(249, 254, 134, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
         }
 
         .card-header {
@@ -263,15 +281,16 @@
             .card.protein,
             .card.fats,
             .card.carbs {
-                padding: 8px;
+                padding: 12px;
                 flex: 1;
                 min-width: 0;
                 width: 0;
                 box-sizing: border-box;
-                height: 80px; /* Fixed height to prevent square shape */
+                height: 120px; /* Increased height for full visibility */
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
+                align-items: center;
             }
             
             .small-cards {
