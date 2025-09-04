@@ -202,8 +202,8 @@
         }
 
         .card.calories .progress-container {
-            width: 80px;
-            height: 80px;
+            width: 65px;
+            height: 65px;
         }
 
         .progress-ring {
@@ -258,7 +258,7 @@
         .card.protein .card-value,
         .card.carbs .card-value,
         .card.fats .card-value {
-            font-size: 42px;
+            font-size: 38px;
             text-align: left;
             align-self: flex-start;
         }
@@ -314,7 +314,7 @@
             .card.protein .card-value,
             .card.carbs .card-value,
             .card.fats .card-value {
-                font-size: 32px;
+                font-size: 28px;
                 text-align: left;
                 align-self: flex-start;
             }
@@ -325,8 +325,8 @@
             }
 
             .card.calories .progress-container {
-                width: 60px;
-                height: 60px;
+                width: 50px;
+                height: 50px;
             }
 
             .progress-ring-bg,
@@ -369,7 +369,7 @@
 
         /* Emoji for smaller calories ring */
         .card.calories .ring-emoji {
-            font-size: 20px;
+            font-size: 18px;
         }
 
         /* Larger emoji for nutrition rings */
@@ -524,7 +524,7 @@
                 document.getElementById('fatsValue').textContent = this.getRemaining('fats') + 'g';
 
                 // Update subtitles to show remaining amounts
-                document.querySelector('.card.calories .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.calories .card-subtitle').textContent = 'Kcal Left';
                 document.querySelector('.card.protein .card-subtitle').textContent = 'Protein Left';
                 document.querySelector('.card.carbs .card-subtitle').textContent = 'Carbs Left';
                 document.querySelector('.card.fats .card-subtitle').textContent = 'Fats Left';
