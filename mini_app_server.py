@@ -83,14 +83,28 @@ class MiniAppServer:
                     location.reload();
                 }, 30000);
 
+                // Initialize with real user data
+                const userData = {
+                    calories: ''' + str((user_data['calories']['total'] - user_data['calories']['value']) / user_data['calories']['total']) + ''',
+                    protein: ''' + str((user_data['protein']['total'] - user_data['protein']['value']) / user_data['protein']['total']) + ''',
+                    fat: ''' + str((user_data['fats']['total'] - user_data['fats']['value']) / user_data['fats']['total']) + ''',
+                    carbs: ''' + str((user_data['carbs']['total'] - user_data['carbs']['value']) / user_data['carbs']['total']) + '''
+                };
+
                 // Show loading state
                 console.log('Mini app loaded for user: ''' + str(user_id) + ''');
                 console.log('Telegram WebApp ready:', tg);
+                console.log('User data:', userData);
 
                 tg.MainButton.setText('Loading...');
                 setTimeout(() => {
                     tg.MainButton.setText('Nutrition Dashboard');
                     console.log('Nutrition Dashboard ready');
+
+                    // Load real data after initialization
+                    if (window.setNutritionData) {
+                        window.setNutritionData(userData);
+                    }
                 }, 1000);
             </script>
             '''
@@ -106,14 +120,20 @@ class MiniAppServer:
 
     def inject_user_data(self, html_content: str, user_data: dict) -> str:
         """Inject user data into HTML template"""
-        # Update ring progress values (consumed progress)
+        # Update initial ring configuration with real user data
         html_content = html_content.replace(
-            'this.rings = [',
+            '''this.rings = [
+                    { name: 'calories', color: '#E07B52', radius: 120, thickness: 20, progress: 1.25 }, // 125%
+                    { name: 'protein', color: '#4CA6A8', radius: 100, thickness: 20, progress: 0.67 },  // 67%
+                    { name: 'fat', color: '#FBE8A6', radius: 80, thickness: 20, progress: 1.15 },     // 115%
+                    { name: 'carbs', color: '#A7C796', radius: 60, thickness: 20, progress: 0.80 }    // 80%
+                ];''',
             f'''this.rings = [
                     {{ name: 'calories', color: '#E07B52', radius: 120, thickness: 20, progress: {(user_data['calories']['total'] - user_data['calories']['value']) / user_data['calories']['total']} }},
                     {{ name: 'protein', color: '#4CA6A8', radius: 100, thickness: 20, progress: {(user_data['protein']['total'] - user_data['protein']['value']) / user_data['protein']['total']} }},
                     {{ name: 'fat', color: '#FBE8A6', radius: 80, thickness: 20, progress: {(user_data['fats']['total'] - user_data['fats']['value']) / user_data['fats']['total']} }},
-                    {{ name: 'carbs', color: '#A7C796', radius: 60, thickness: 20, progress: {(user_data['carbs']['total'] - user_data['carbs']['value']) / user_data['carbs']['total']} }}'''
+                    {{ name: 'carbs', color: '#A7C796', radius: 60, thickness: 20, progress: {(user_data['carbs']['total'] - user_data['carbs']['value']) / user_data['carbs']['total']} }}
+                ];'''
         )
 
         # Update stat box values

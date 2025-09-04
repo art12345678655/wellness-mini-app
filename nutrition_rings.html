@@ -128,10 +128,7 @@
         <div class="rings-container">
             <canvas id="nutritionRings" width="600" height="600"></canvas>
         </div>
-        
-
-        
-        <div class="stats">
+<div class="stats">
             <div class="stat-item" id="caloriesStatBox" style="background: #E07B52;">
                 <div class="stat-value" id="caloriesStat">125%</div>
                 <div class="stat-label">CALORIES</div>
@@ -174,9 +171,7 @@
         </div>
         
         <button class="update-btn" onclick="updateRings()">Update Rings</button>
-    </div>
-
-    <script>
+    </div><script>
         class NutritionRings {
             constructor(canvasId) {
                 this.canvas = document.getElementById(canvasId);
@@ -261,8 +256,6 @@
             
             drawProgressRing(ring) {
                 const startAngle = -Math.PI / 2; // Start at 12 o'clock
-                
-
                 
                 // Handle overlapping effect when progress > 100%
                 let endAngle, isOverlapping;
