@@ -175,8 +175,8 @@
 
         .progress-container {
             position: relative;
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -184,8 +184,8 @@
         }
 
         .card.calories .progress-container {
-            width: 90px;
-            height: 90px;
+            width: 110px;
+            height: 110px;
         }
 
         .progress-ring {
@@ -268,6 +268,10 @@
                 min-width: 0;
                 width: 0;
                 box-sizing: border-box;
+                height: 80px; /* Fixed height to prevent square shape */
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
             }
             
             .small-cards {
@@ -293,13 +297,13 @@
             }
             
             .progress-container {
-                width: 60px;
-                height: 60px;
+                width: 70px;
+                height: 70px;
             }
 
             .card.calories .progress-container {
-                width: 75px;
-                height: 75px;
+                width: 85px;
+                height: 85px;
             }
             
             .progress-ring-bg,
@@ -311,7 +315,7 @@
             .card.protein .ring-emoji,
             .card.fats .ring-emoji,
             .card.carbs .ring-emoji {
-                font-size: 18px;
+                font-size: 20px;
             }
             
             .input-grid {
@@ -345,11 +349,11 @@
             font-size: 28px;
         }
 
-        /* Smaller emoji for nutrition rings */
+        /* Larger emoji for nutrition rings */
         .card.protein .ring-emoji,
         .card.fats .ring-emoji,
         .card.carbs .ring-emoji {
-            font-size: 20px;
+            font-size: 24px;
         }
 
         /* Protein emoji styling */
