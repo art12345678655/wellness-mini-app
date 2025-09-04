@@ -339,12 +339,15 @@
                 stroke-width: 6;
             }
 
-            /* Consistent emoji sizes for mobile - same as desktop */
-            .card.calories .ring-emoji,
+            /* Emoji sizes for mobile - calories 2px bigger */
             .card.protein .ring-emoji,
             .card.fats .ring-emoji,
             .card.carbs .ring-emoji {
                 font-size: 24px;
+            }
+
+            .card.calories .ring-emoji {
+                font-size: 26px;
             }
             
             .input-grid {
@@ -373,9 +376,9 @@
             pointer-events: none;
         }
 
-        /* Emoji for calories ring - same size as other nutrients */
+        /* Emoji for calories ring - 2px bigger than other nutrients */
         .card.calories .ring-emoji {
-            font-size: 28px;
+            font-size: 30px;
         }
 
         /* Larger emoji for nutrition rings */
