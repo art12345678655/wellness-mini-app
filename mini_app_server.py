@@ -135,38 +135,61 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def inject_user_data(self, html_content, user_data):
         """Inject user data into HTML template"""
-        # Calculate progress values
-        calories_progress = (user_data['calories']['total'] - user_data['calories']['value']) / user_data['calories']['total']
-        protein_progress = (user_data['protein']['total'] - user_data['protein']['value']) / user_data['protein']['total']
-        fat_progress = (user_data['fats']['total'] - user_data['fats']['value']) / user_data['fats']['total']
-        carbs_progress = (user_data['carbs']['total'] - user_data['carbs']['value']) / user_data['carbs']['total']
+        # Calculate progress based on consumed amounts (consumed / goal)
+        calories_progress = user_data['calories']['value'] / user_data['calories']['total']
+        protein_progress = user_data['protein']['value'] / user_data['protein']['total']
+        fat_progress = user_data['fats']['value'] / user_data['fats']['total']
+        carbs_progress = user_data['carbs']['value'] / user_data['carbs']['total']
 
-        # Update ring configuration
+        # Calculate remaining amounts (goal - consumed)
+        calories_remaining = user_data['calories']['total'] - user_data['calories']['value']
+        protein_remaining = user_data['protein']['total'] - user_data['protein']['value']
+        fat_remaining = user_data['fats']['total'] - user_data['fats']['value']
+        carbs_remaining = user_data['carbs']['total'] - user_data['carbs']['value']
+
+        # Update display values to show remaining amounts
+        html_content = html_content.replace('id="caloriesValue">2199</div>', f'id="caloriesValue">{calories_remaining}</div>')
+        html_content = html_content.replace('id="proteinValue">161</div>', f'id="proteinValue">{protein_remaining}g</div>')
+        html_content = html_content.replace('id="carbsValue">251</div>', f'id="carbsValue">{carbs_remaining}g</div>')
+        html_content = html_content.replace('id="fatsValue">61</div>', f'id="fatsValue">{fat_remaining}g</div>')
+
+        # Update subtitles to show consumed amounts
+        html_content = html_content.replace('calories left</div>', f'{user_data["calories"]["value"]} cal consumed</div>')
+        html_content = html_content.replace('protein left</div>', f'{user_data["protein"]["value"]}g consumed</div>')
+        html_content = html_content.replace('carbs left</div>', f'{user_data["carbs"]["value"]}g consumed</div>')
+        html_content = html_content.replace('fats left</div>', f'{user_data["fats"]["value"]}g consumed</div>')
+
+        # Update user profile data in JavaScript
         html_content = html_content.replace(
-            '''this.rings = [
-                    { name: 'calories', color: '#E07B52', radius: 120, thickness: 20, progress: 1.25 },
-                    { name: 'protein', color: '#4CA6A8', radius: 100, thickness: 20, progress: 0.67 },
-                    { name: 'fat', color: '#FBE8A6', radius: 80, thickness: 20, progress: 1.15 },
-                    { name: 'carbs', color: '#A7C796', radius: 60, thickness: 20, progress: 0.80 }
-                ];''',
-            f'''this.rings = [
-                    {{ name: 'calories', color: '#E07B52', radius: 120, thickness: 20, progress: {calories_progress} }},
-                    {{ name: 'protein', color: '#4CA6A8', radius: 100, thickness: 20, progress: {protein_progress} }},
-                    {{ name: 'fat', color: '#FBE8A6', radius: 80, thickness: 20, progress: {fat_progress} }},
-                    {{ name: 'carbs', color: '#A7C796', radius: 60, thickness: 20, progress: {carbs_progress} }}
-                ];'''
+            '''this.userProfile = {
+                    goals: {
+                        calories: 2500,
+                        protein: 200, // grams
+                        carbs: 300,   // grams
+                        fats: 80      // grams
+                    },
+                    consumed: {
+                        calories: 301,  // consumed today
+                        protein: 39,    // grams consumed
+                        carbs: 49,      // grams consumed
+                        fats: 19        // grams consumed
+                    }
+                };''',
+            f'''this.userProfile = {{
+                    goals: {{
+                        calories: {user_data['calories']['total']},
+                        protein: {user_data['protein']['total']}, // grams
+                        carbs: {user_data['carbs']['total']},   // grams
+                        fats: {user_data['fats']['total']}      // grams
+                    }},
+                    consumed: {{
+                        calories: {user_data['calories']['value']},  // consumed today
+                        protein: {user_data['protein']['value']},    // grams consumed
+                        carbs: {user_data['carbs']['value']},      // grams consumed
+                        fats: {user_data['fats']['value']}        // grams consumed
+                    }}
+                }};'''
         )
-
-        # Update stat percentages
-        calories_pct = round(calories_progress * 100)
-        protein_pct = round(protein_progress * 100)
-        fat_pct = round(fat_progress * 100)
-        carbs_pct = round(carbs_progress * 100)
-
-        html_content = html_content.replace('id="caloriesStat">125%</div>', f'id="caloriesStat">{calories_pct}%</div>')
-        html_content = html_content.replace('id="proteinStat">67%</div>', f'id="proteinStat">{protein_pct}%</div>')
-        html_content = html_content.replace('id="fatStat">115%</div>', f'id="fatStat">{fat_pct}%</div>')
-        html_content = html_content.replace('id="carbsStat">80%</div>', f'id="carbsStat">{carbs_pct}%</div>')
 
         # Add Telegram WebApp integration
         telegram_script = f'''
