@@ -1,200 +1,96 @@
 #!/usr/bin/env python3
 """
-Mini App Server for Nutrition Dashboard
-Standalone version with minimal dependencies for Render deployment
+Simple Mini App Server for Nutrition Dashboard
+Uses only standard library - no external dependencies
 """
 
 import os
 import json
-import asyncio
-from aiohttp import web
 import logging
-from supabase_db import SupabaseMiniApp
-from config import PORT
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class MiniAppServer:
+class SupabaseMiniApp:
+    """Simple mock Supabase client"""
     def __init__(self):
-        self.db = SupabaseMiniApp()
+        pass
 
-    async def nutrition_dashboard(self, request):
-        """Serve the nutrition dashboard with real user data"""
-        user_id = request.query.get('user_id')
+    def get_user_nutrition_data(self, user_id: str) -> dict:
+        """Get mock nutrition data"""
+        logger.info(f"Getting nutrition data for user {user_id}")
 
-        if not user_id:
-            return web.Response(text="❌ User ID required", status=400)
+        # Mock data - replace with real Supabase calls later
+        return {
+            'calories': {'value': 1500, 'total': 2000},
+            'protein': {'value': 80, 'total': 150},
+            'carbs': {'value': 200, 'total': 250},
+            'fats': {'value': 50, 'total': 65}
+        }
+
+class RequestHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        """Handle GET requests"""
+        parsed_url = urlparse(self.path)
+        path = parsed_url.path
+        query_params = parse_qs(parsed_url.query)
+
+        logger.info(f"📡 Request: {path}")
 
         try:
-            user_id = int(user_id)
+            if path == '/' or path == '/nutrition-dashboard':
+                self.handle_nutrition_dashboard(query_params)
+            elif path == '/test':
+                self.handle_test_dashboard()
+            elif path == '/health':
+                self.handle_health_check()
+            else:
+                self.send_error(404, "Not Found")
+
+        except Exception as e:
+            logger.error(f"❌ Error handling request: {e}")
+            self.send_error(500, f"Internal Server Error: {str(e)}")
+
+    def handle_nutrition_dashboard(self, query_params):
+        """Serve the nutrition dashboard"""
+        user_id = query_params.get('user_id', [None])[0]
+
+        if not user_id:
+            self.send_error(400, "User ID required")
+            return
+
+        try:
             logger.info(f"📱 Mini app accessed by user {user_id}")
 
-            # Get real user data from Supabase
-            user_data = await self.db.get_user_nutrition_data(user_id)
+            # Get user data
+            db = SupabaseMiniApp()
+            user_data = db.get_user_nutrition_data(user_id)
 
-            # Read the HTML template
-            import os
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            html_file_path = os.path.join(current_dir, 'nutrition_rings.html')
+            # Read HTML template
+            html_content = self.read_html_file()
+            if not html_content:
+                self.send_error(500, "HTML template not found")
+                return
 
-            try:
-                with open(html_file_path, 'r', encoding='utf-8') as f:
-                    html_content = f.read()
-            except FileNotFoundError:
-                # Fallback: try to find the file in different locations
-                possible_paths = [
-                    'nutrition_rings.html',
-                    './nutrition_rings.html',
-                    '../nutrition_rings.html',
-                    '/opt/render/project/src/nutrition_rings.html'
-                ]
-                html_content = None
-                for path in possible_paths:
-                    try:
-                        with open(path, 'r', encoding='utf-8') as f:
-                            html_content = f.read()
-                            break
-                    except FileNotFoundError:
-                        continue
-
-                if html_content is None:
-                    return web.Response(text="❌ HTML template not found", status=500)
-
-            # Inject real user data
+            # Inject data
             html_content = self.inject_user_data(html_content, user_data)
-
-            # Add Telegram WebApp integration
-            telegram_script = '''
-            <script src="https://telegram.org/js/telegram-web-app.js"></script>
-            <script>
-                const tg = window.Telegram.WebApp;
-                tg.expand();
-                tg.ready();
-
-                // Send data back to bot when updated
-                function sendDataToBot(data) {
-                    tg.sendData(JSON.stringify(data));
-                }
-
-                // Auto-refresh data every 30 seconds
-                setInterval(() => {
-                    location.reload();
-                }, 30000);
-
-                // Initialize with real user data
-                const userData = {
-                    calories: ''' + str((user_data['calories']['total'] - user_data['calories']['value']) / user_data['calories']['total']) + ''',
-                    protein: ''' + str((user_data['protein']['total'] - user_data['protein']['value']) / user_data['protein']['total']) + ''',
-                    fat: ''' + str((user_data['fats']['total'] - user_data['fats']['value']) / user_data['fats']['total']) + ''',
-                    carbs: ''' + str((user_data['carbs']['total'] - user_data['carbs']['value']) / user_data['carbs']['total']) + '''
-                };
-
-                // Show loading state
-                console.log('Mini app loaded for user: ''' + str(user_id) + ''');
-                console.log('Telegram WebApp ready:', tg);
-                console.log('User data:', userData);
-
-                tg.MainButton.setText('Loading...');
-                setTimeout(() => {
-                    tg.MainButton.setText('Nutrition Dashboard');
-                    console.log('Nutrition Dashboard ready');
-
-                    // Load real data after initialization
-                    if (window.setNutritionData) {
-                        window.setNutritionData(userData);
-                    }
-                }, 1000);
-            </script>
-            '''
-
-            html_content = html_content.replace('</head>', f'{telegram_script}</head>')
-
-            logger.info(f"✅ Successfully served dashboard for user {user_id}")
-            return web.Response(text=html_content, content_type='text/html')
+            self.send_html_response(html_content)
 
         except Exception as e:
-            logger.error(f"❌ Error serving dashboard for user {user_id}: {e}")
-            return web.Response(text="❌ Error loading dashboard", status=500)
+            logger.error(f"❌ Error serving dashboard: {e}")
+            self.send_error(500, f"Error loading dashboard: {str(e)}")
 
-    def inject_user_data(self, html_content: str, user_data: dict) -> str:
-        """Inject user data into HTML template"""
-        # Update initial ring configuration with real user data
-        html_content = html_content.replace(
-            '''this.rings = [
-                    { name: 'calories', color: '#E07B52', radius: 120, thickness: 20, progress: 1.25 }, // 125%
-                    { name: 'protein', color: '#4CA6A8', radius: 100, thickness: 20, progress: 0.67 },  // 67%
-                    { name: 'fat', color: '#FBE8A6', radius: 80, thickness: 20, progress: 1.15 },     // 115%
-                    { name: 'carbs', color: '#A7C796', radius: 60, thickness: 20, progress: 0.80 }    // 80%
-                ];''',
-            f'''this.rings = [
-                    {{ name: 'calories', color: '#E07B52', radius: 120, thickness: 20, progress: {(user_data['calories']['total'] - user_data['calories']['value']) / user_data['calories']['total']} }},
-                    {{ name: 'protein', color: '#4CA6A8', radius: 100, thickness: 20, progress: {(user_data['protein']['total'] - user_data['protein']['value']) / user_data['protein']['total']} }},
-                    {{ name: 'fat', color: '#FBE8A6', radius: 80, thickness: 20, progress: {(user_data['fats']['total'] - user_data['fats']['value']) / user_data['fats']['total']} }},
-                    {{ name: 'carbs', color: '#A7C796', radius: 60, thickness: 20, progress: {(user_data['carbs']['total'] - user_data['carbs']['value']) / user_data['carbs']['total']} }}
-                ];'''
-        )
-
-        # Update stat box values
-        calories_progress = round(((user_data['calories']['total'] - user_data['calories']['value']) / user_data['calories']['total']) * 100)
-        protein_progress = round(((user_data['protein']['total'] - user_data['protein']['value']) / user_data['protein']['total']) * 100)
-        fats_progress = round(((user_data['fats']['total'] - user_data['fats']['value']) / user_data['fats']['total']) * 100)
-        carbs_progress = round(((user_data['carbs']['total'] - user_data['carbs']['value']) / user_data['carbs']['total']) * 100)
-
-        html_content = html_content.replace('id="caloriesStat">125%</div>', f'id="caloriesStat">{calories_progress}%</div>')
-        html_content = html_content.replace('id="proteinStat">67%</div>', f'id="proteinStat">{protein_progress}%</div>')
-        html_content = html_content.replace('id="fatStat">115%</div>', f'id="fatStat">{fats_progress}%</div>')
-        html_content = html_content.replace('id="carbsStat">80%</div>', f'id="carbsStat">{carbs_progress}%</div>')
-
-        # Update input values
-        html_content = html_content.replace('id="caloriesInput" value="2500"', f'id="caloriesInput" value="{int(user_data["calories"]["value"])}"')
-        html_content = html_content.replace('id="caloriesTarget" value="2000"', f'id="caloriesTarget" value="{int(user_data["calories"]["total"])}"')
-        html_content = html_content.replace('id="proteinInput" value="80"', f'id="proteinInput" value="{int(user_data["protein"]["value"])}"')
-        html_content = html_content.replace('id="proteinTarget" value="120"', f'id="proteinTarget" value="{int(user_data["protein"]["total"])}"')
-        html_content = html_content.replace('id="fatInput" value="80"', f'id="fatInput" value="{int(user_data["fats"]["value"])}"')
-        html_content = html_content.replace('id="fatTarget" value="70"', f'id="fatTarget" value="{int(user_data["fats"]["total"])}"')
-        html_content = html_content.replace('id="carbsInput" value="200"', f'id="carbsInput" value="{int(user_data["carbs"]["value"])}"')
-        html_content = html_content.replace('id="carbTarget" value="250"', f'id="carbTarget" value="{int(user_data["carbs"]["total"])}"')
-
-        return html_content
-
-    async def health_check(self, request):
-        """Health check endpoint for Render"""
-        return web.json_response({
-            "status": "healthy",
-            "service": "nutrition-mini-app",
-            "database": "supabase",
-            "timestamp": str(asyncio.get_event_loop().time())
-        })
-
-    async def api_user_data(self, request):
-        """API endpoint to get user data"""
-        user_id = request.match_info.get('user_id')
-
-        if not user_id:
-            return web.json_response({"error": "User ID required"}, status=400)
-
+    def handle_test_dashboard(self):
+        """Serve test dashboard without user data"""
         try:
-            user_id = int(user_id)
-            data = await self.db.get_user_nutrition_data(user_id)
-            return web.json_response({"status": "success", "data": data})
-        except Exception as e:
-            logger.error(f"Error getting user data: {e}")
-            return web.json_response({"error": str(e)}, status=500)
-
-    async def test_dashboard(self, request):
-        """Test endpoint that returns a simple dashboard without user data"""
-        try:
-            import os
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            html_file_path = os.path.join(current_dir, 'nutrition_rings.html')
-
-            try:
-                with open(html_file_path, 'r', encoding='utf-8') as f:
-                    html_content = f.read()
-            except FileNotFoundError:
-                return web.Response(text=f"❌ HTML file not found at {html_file_path}", status=500)
+            html_content = self.read_html_file()
+            if not html_content:
+                self.send_error(500, "HTML template not found")
+                return
 
             # Add basic Telegram WebApp integration
             telegram_script = '''
@@ -204,34 +100,128 @@ class MiniAppServer:
                 const tg = window.Telegram.WebApp;
                 tg.expand();
                 tg.ready();
-                console.log('Telegram WebApp test ready:', tg);
-                tg.MainButton.setText('Test Dashboard');
+                console.log('Telegram WebApp test ready');
+                if (tg.MainButton) {
+                    tg.MainButton.setText('Test Dashboard');
+                }
             </script>
             '''
 
             html_content = html_content.replace('</head>', f'{telegram_script}</head>')
+            self.send_html_response(html_content)
 
-            logger.info("✅ Test dashboard served successfully")
-            return web.Response(text=html_content, content_type='text/html')
         except Exception as e:
             logger.error(f"❌ Error serving test dashboard: {e}")
-            return web.Response(text=f"❌ Test dashboard error: {str(e)}", status=500)
+            self.send_error(500, f"Test dashboard error: {str(e)}")
 
+    def handle_health_check(self):
+        """Health check endpoint"""
+        response = {
+            "status": "healthy",
+            "service": "nutrition-mini-app",
+            "database": "mock",
+            "timestamp": str(time.time())
+        }
+        self.send_json_response(response)
 
-async def create_app():
-    """Create the web application"""
-    app = MiniAppServer()
+    def read_html_file(self):
+        """Read the HTML template file"""
+        try:
+            with open('nutrition_rings.html', 'r', encoding='utf-8') as f:
+                return f.read()
+        except FileNotFoundError:
+            logger.error("❌ nutrition_rings.html not found")
+            return None
 
-    web_app = web.Application()
-    web_app.router.add_get('/', app.nutrition_dashboard)
-    web_app.router.add_get('/nutrition-dashboard', app.nutrition_dashboard)
-    web_app.router.add_get('/test', app.test_dashboard)
-    web_app.router.add_get('/health', app.health_check)
-    web_app.router.add_get('/api/user/{user_id}', app.api_user_data)
+    def inject_user_data(self, html_content, user_data):
+        """Inject user data into HTML template"""
+        # Calculate progress values
+        calories_progress = (user_data['calories']['total'] - user_data['calories']['value']) / user_data['calories']['total']
+        protein_progress = (user_data['protein']['total'] - user_data['protein']['value']) / user_data['protein']['total']
+        fat_progress = (user_data['fats']['total'] - user_data['fats']['value']) / user_data['fats']['total']
+        carbs_progress = (user_data['carbs']['total'] - user_data['carbs']['value']) / user_data['carbs']['total']
 
-    return web_app
+        # Update ring configuration
+        html_content = html_content.replace(
+            '''this.rings = [
+                    { name: 'calories', color: '#E07B52', radius: 120, thickness: 20, progress: 1.25 },
+                    { name: 'protein', color: '#4CA6A8', radius: 100, thickness: 20, progress: 0.67 },
+                    { name: 'fat', color: '#FBE8A6', radius: 80, thickness: 20, progress: 1.15 },
+                    { name: 'carbs', color: '#A7C796', radius: 60, thickness: 20, progress: 0.80 }
+                ];''',
+            f'''this.rings = [
+                    {{ name: 'calories', color: '#E07B52', radius: 120, thickness: 20, progress: {calories_progress} }},
+                    {{ name: 'protein', color: '#4CA6A8', radius: 100, thickness: 20, progress: {protein_progress} }},
+                    {{ name: 'fat', color: '#FBE8A6', radius: 80, thickness: 20, progress: {fat_progress} }},
+                    {{ name: 'carbs', color: '#A7C796', radius: 60, thickness: 20, progress: {carbs_progress} }}
+                ];'''
+        )
 
+        # Update stat percentages
+        calories_pct = round(calories_progress * 100)
+        protein_pct = round(protein_progress * 100)
+        fat_pct = round(fat_progress * 100)
+        carbs_pct = round(carbs_progress * 100)
+
+        html_content = html_content.replace('id="caloriesStat">125%</div>', f'id="caloriesStat">{calories_pct}%</div>')
+        html_content = html_content.replace('id="proteinStat">67%</div>', f'id="proteinStat">{protein_pct}%</div>')
+        html_content = html_content.replace('id="fatStat">115%</div>', f'id="fatStat">{fat_pct}%</div>')
+        html_content = html_content.replace('id="carbsStat">80%</div>', f'id="carbsStat">{carbs_pct}%</div>')
+
+        # Add Telegram WebApp integration
+        telegram_script = f'''
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        <script>
+            console.log('Mini app loaded with user data');
+
+            // Telegram WebApp integration
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.ready();
+            console.log('Telegram WebApp ready');
+
+            if (tg.MainButton) {{
+                tg.MainButton.setText('Loading...');
+                setTimeout(() => {{
+                    tg.MainButton.setText('Nutrition Dashboard');
+                    console.log('Nutrition Dashboard ready');
+                }}, 1000);
+            }}
+        </script>
+        '''
+
+        html_content = html_content.replace('</head>', f'{telegram_script}</head>')
+        return html_content
+
+    def send_html_response(self, content):
+        """Send HTML response"""
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html; charset=utf-8')
+        self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+        self.send_header('Pragma', 'no-cache')
+        self.send_header('Expires', '0')
+        self.end_headers()
+        self.wfile.write(content.encode('utf-8'))
+
+    def send_json_response(self, data):
+        """Send JSON response"""
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode('utf-8'))
+
+def run_server(port=8080):
+    """Run the HTTP server"""
+    server_address = ('0.0.0.0', port)
+    httpd = HTTPServer(server_address, RequestHandler)
+    logger.info(f"🚀 Starting mini app server on port {port}")
+    logger.info("📱 Available endpoints:")
+    logger.info("   / - Main dashboard")
+    logger.info("   /nutrition-dashboard - Nutrition dashboard")
+    logger.info("   /test - Test dashboard")
+    logger.info("   /health - Health check")
+    httpd.serve_forever()
 
 if __name__ == '__main__':
-    # For local testing and Render deployment
-    web.run_app(create_app(), host='0.0.0.0', port=PORT)
+    port = int(os.getenv('PORT', 8080))
+    run_server(port)
