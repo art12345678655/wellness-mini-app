@@ -256,7 +256,7 @@
             
             drawProgressRing(ring) {
                 const startAngle = -Math.PI / 2; // Start at 12 o'clock
-
+                
                 // Handle overlapping effect when progress > 100%
                 let endAngle, isOverlapping;
                 if (ring.progress > 1) {
@@ -267,49 +267,52 @@
                     endAngle = startAngle + (2 * Math.PI * ring.progress);
                     isOverlapping = false;
                 }
-
+                
+                // Create gradient for smooth appearance
+                const gradient = this.ctx.createRadialGradient(
+                    this.centerX, this.centerY, ring.radius - ring.thickness,
+                    this.centerX, this.centerY, ring.radius + ring.thickness
+                );
+                gradient.addColorStop(0, ring.color);
+                gradient.addColorStop(1, this.adjustBrightness(ring.color, -20));
+                
                 this.ctx.save();
                 this.ctx.lineWidth = ring.thickness;
+                this.ctx.strokeStyle = gradient;
                 this.ctx.lineCap = 'round';
                 this.ctx.lineJoin = 'round';
-
+                
                 // Enable anti-aliasing
                 this.ctx.imageSmoothingEnabled = true;
                 this.ctx.imageSmoothingQuality = 'high';
-
-                // Set stroke color based on ring type
-                if (ring.name === 'calories') {
-                    // White progress for calories ring
-                    this.ctx.strokeStyle = '#ffffff';
-                } else {
-                    // Black progress for nutrient rings (protein, fat, carbs)
-                    this.ctx.strokeStyle = '#000000';
-                }
-
+                
                 // Draw the main progress arc
                 this.ctx.beginPath();
                 this.ctx.arc(this.centerX, this.centerY, ring.radius, startAngle, endAngle);
                 this.ctx.stroke();
-
+                
                 // If overlapping, draw additional overlapping effect
                 if (isOverlapping) {
-                    // Draw overlapping portion with same color logic
-                    if (ring.name === 'calories') {
-                        this.ctx.strokeStyle = '#ffffff';
-                    } else {
-                        this.ctx.strokeStyle = '#000000';
-                    }
+                    // Draw overlapping indicator (darker, slightly larger)
+                    const overlapGradient = this.ctx.createRadialGradient(
+                        this.centerX, this.centerY, ring.radius - ring.thickness,
+                        this.centerX, this.centerY, ring.radius + ring.thickness
+                    );
+                    overlapGradient.addColorStop(0, this.adjustBrightness(ring.color, -30));
+                    overlapGradient.addColorStop(1, this.adjustBrightness(ring.color, -50));
+                    
+                    this.ctx.strokeStyle = overlapGradient;
                     this.ctx.lineWidth = ring.thickness + 2;
-
+                    
                     // Draw overlapping portion
                     const overlapStart = startAngle + (2 * Math.PI);
                     this.ctx.beginPath();
                     this.ctx.arc(this.centerX, this.centerY, ring.radius, overlapStart, endAngle);
                     this.ctx.stroke();
                 }
-
+                
                 this.ctx.restore();
-
+                
                 // Don't draw percentage labels on the rings
                 // this.drawRingLabel(ring);
             }
