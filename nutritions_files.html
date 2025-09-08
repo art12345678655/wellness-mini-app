@@ -1,3 +1,7 @@
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,6 +32,7 @@
             flex-direction: column;
             gap: 20px;
         }
+
 
         .card {
             border-radius: 20px;
@@ -247,14 +252,20 @@
                 padding: 20px;
             }
             
+            .card.protein,
+            .card.carbs,
+            .card.fats {
+                padding: 16px;
+            }
+            
             .card.calories {
                 padding: 12px;
                 height: 100px;
             }
             
             .small-cards {
-                flex-direction: column;
-                gap: 16px;
+                flex-direction: row;
+                gap: 12px;
             }
             
             .card-value {
@@ -268,7 +279,7 @@
             .card.protein .card-value,
             .card.carbs .card-value,
             .card.fats .card-value {
-                font-size: 28px;
+                font-size: 24px;
             }
             
             .progress-container {
@@ -329,6 +340,35 @@
             font-size: 16px;
         }
     </style>
+
+    <!-- Telegram WebApp Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+
+        // Get user data from Telegram
+        let telegramUserId = null;
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            telegramUserId = tg.initDataUnsafe.user.id;
+            console.log('Telegram User ID:', telegramUserId);
+
+            // Update USER_CONFIG with Telegram user ID if available
+            if (window.USER_CONFIG && telegramUserId) {
+                window.USER_CONFIG.userId = telegramUserId.toString();
+            }
+        }
+
+        // If we have a Telegram user ID, try to fetch real data immediately
+        if (telegramUserId) {
+            console.log('Fetching real data for Telegram user:', telegramUserId);
+            // The loadUserData function will be called by the NutritionTracker
+        }
+
+        // Expand the app to full height
+        tg.expand();
+    </script>
 </head>
 <body>
     <div class="container">
@@ -347,6 +387,9 @@
                     <div class="ring-emoji">🔥</div>
                 </div>
             </div>
+            
+
+            
         </div>
 
         <!-- Small Cards Row -->
@@ -402,34 +445,10 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <script>
-        // Initialize Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-
-        // Get user data from Telegram
-        let telegramUserId = null;
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            telegramUserId = tg.initDataUnsafe.user.id;
-            console.log('Telegram User ID:', telegramUserId);
-
-            // Update USER_CONFIG with Telegram user ID if available
-            if (window.USER_CONFIG && telegramUserId) {
-                window.USER_CONFIG.userId = telegramUserId.toString();
-            }
-        }
-
-        // If we have a Telegram user ID, try to fetch real data immediately
-        if (telegramUserId) {
-            console.log('Fetching real data for Telegram user:', telegramUserId);
-            // The loadUserData function will be called by the NutritionTracker
-        }
-
-        // Expand the app to full height
-        tg.expand();
-
         // Progress ring logic using the simple approach from your reference file
         function setProgress(circle, percent) {
             const radius = circle.r.baseVal.value;
@@ -448,7 +467,7 @@
 
         class NutritionTracker {
             constructor() {
-                // User profile data - goals and consumed amounts (injected by server)
+                // User profile data - will be loaded from API
                 this.userProfile = {
                     goals: {
                         calories: 2500,
@@ -463,7 +482,8 @@
                         fats: 19        // grams consumed
                     }
                 };
-                this.isInitialized = false; // Flag to prevent multiple executions
+
+                this.isInitialized = false;
                 this.init();
             }
 
@@ -472,10 +492,11 @@
                     console.log('Already initialized, skipping');
                     return;
                 }
+
                 await this.loadUserData();
                 this.updateValues();
                 this.updateProgressRings();
-                this.isInitialized = true; // Set to true after successful initialization
+                this.isInitialized = true;
                 console.log('Data loaded and stable - no more changes');
             }
 
@@ -505,18 +526,29 @@
                 if (!this.isInitialized) {
                     return; // Don't update until initialized
                 }
-                
+
                 // Update display values to show remaining amounts
-                document.getElementById('caloriesValue').textContent = this.getRemaining('calories');
-                document.getElementById('proteinValue').textContent = this.getRemaining('protein') + 'g';
-                document.getElementById('carbsValue').textContent = this.getRemaining('carbs') + 'g';
-                document.getElementById('fatsValue').textContent = this.getRemaining('fats') + 'g';
+                const remainingCalories = Math.round(this.getRemaining('calories'));
+                const remainingProtein = Math.round(this.getRemaining('protein'));
+                const remainingCarbs = Math.round(this.getRemaining('carbs'));
+                const remainingFats = Math.round(this.getRemaining('fats'));
+
+                document.getElementById('caloriesValue').textContent = remainingCalories;
+                document.getElementById('proteinValue').textContent = remainingProtein + 'g';
+                document.getElementById('carbsValue').textContent = remainingCarbs + 'g';
+                document.getElementById('fatsValue').textContent = remainingFats + 'g';
+
+                // Update subtitles - "Kcal Left" for calories, "Left" for others
+                document.querySelector('.card.calories .card-subtitle').textContent = 'Kcal Left';
+                document.querySelector('.card.protein .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.carbs .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.fats .card-subtitle').textContent = 'Left';
 
                 console.log('Values updated - stable data:', {
-                    calories: this.getRemaining('calories'),
-                    protein: this.getRemaining('protein') + 'g',
-                    carbs: this.getRemaining('carbs') + 'g',
-                    fats: this.getRemaining('fats') + 'g'
+                    calories: remainingCalories,
+                    protein: remainingProtein,
+                    carbs: remainingCarbs,
+                    fats: remainingFats
                 });
             }
 
@@ -524,7 +556,7 @@
                 if (!this.isInitialized) {
                     return; // Don't update until initialized
                 }
-                
+
                 // Calculate progress based on consumed amounts (consumed / goal)
                 const caloriesProgress = this.getProgress('calories');
                 const proteinProgress = this.getProgress('protein');
@@ -597,3 +629,4 @@
     </script>
 </body>
 </html>
+ 
