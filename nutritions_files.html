@@ -494,43 +494,15 @@
                 console.log('Data loaded and stable - no more changes');
             }
 
-            // Load user data from backend API
+            // Load user data - data is already injected by server, no API call needed
             async loadUserData() {
                 try {
-                    // Use Telegram user ID if available, otherwise fall back to URL parameter or default
-                    let userId = 'user_123';
-
-                    if (telegramUserId) {
-                        userId = telegramUserId.toString();
-                    } else if (USER_CONFIG && USER_CONFIG.userId) {
-                        userId = USER_CONFIG.userId;
-                    }
-
-                    const apiUrl = USER_CONFIG ? `${USER_CONFIG.apiBaseUrl}/api/nutrition-data?user_id=${userId}` : `/api/nutrition-data?user_id=${userId}`;
-
-                    console.log('Fetching data for user ID:', userId);
-                    const response = await fetch(apiUrl);
-                    const data = await response.json();
-
-                    // Update user profile with real data
-                    this.userProfile.goals = {
-                        calories: data.targets.calories,
-                        protein: data.targets.protein_g,
-                        carbs: data.targets.carbs_g,
-                        fats: data.targets.fats_g
-                    };
-
-                    this.userProfile.consumed = {
-                        calories: data.consumed_today.calories,
-                        protein: data.consumed_today.protein_g,
-                        carbs: data.consumed_today.carbs_g,
-                        fats: data.consumed_today.fats_g
-                    };
-
-                    console.log('Loaded user data:', data);
+                    console.log('Using server-injected data - no API call needed');
+                    console.log('Current user profile (injected by server):', this.userProfile);
+                    // Data is already injected by the server, no need to fetch from API
+                    // This prevents the data from changing after initial load
                 } catch (error) {
-                    console.error('Failed to load user data:', error);
-                    // Keep default values if API fails
+                    console.error('Error in loadUserData:', error);
                 }
             }
 
@@ -604,11 +576,13 @@
                 setTimeout(() => setProgress(fatsCircle, fatsProgress), 800);
             }
 
-            // Method to update user profile data (for future integration with backend)
+            // Method to update user profile data (DISABLED to prevent data changes)
             updateUserProfile(newConsumed) {
-                this.userProfile.consumed = { ...this.userProfile.consumed, ...newConsumed };
-                this.updateValues();
-                this.updateProgressRings();
+                console.log('updateUserProfile called but DISABLED to keep data stable');
+                console.log('Ignoring update request:', newConsumed);
+                // DISABLED: this.userProfile.consumed = { ...this.userProfile.consumed, ...newConsumed };
+                // DISABLED: this.updateValues();
+                // DISABLED: this.updateProgressRings();
             }
         }
 
@@ -625,11 +599,13 @@
             }
         });
 
-        // Function to update nutrition data from external sources (API, user input, etc.)
+        // Function to update nutrition data from external sources (DISABLED to keep data stable)
         function updateUserNutrition(consumedData) {
-            if (nutritionTracker) {
-                nutritionTracker.updateUserProfile(consumedData);
-            }
+            console.log('updateUserNutrition called but DISABLED to keep data stable');
+            console.log('Ignoring external update request:', consumedData);
+            // DISABLED: if (nutritionTracker) {
+            // DISABLED:     nutritionTracker.updateUserProfile(consumedData);
+            // DISABLED: }
         }
 
         // Function to refresh data from API (disabled for stability)
