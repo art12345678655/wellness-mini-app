@@ -354,6 +354,12 @@
             }
         }
 
+        // If we have a Telegram user ID, try to fetch real data immediately
+        if (telegramUserId) {
+            console.log('Fetching real data for Telegram user:', telegramUserId);
+            // The loadUserData function will be called by the NutritionTracker
+        }
+
         // Expand the app to full height
         tg.expand();
     </script>

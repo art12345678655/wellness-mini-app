@@ -23,7 +23,66 @@ SUPABASE_ANON_KEY=your-anon-key-here
 MINI_APP_URL=https://your-mini-app.onrender.com
 ```
 
-### 2. Local Development
+**Note:** If Supabase credentials are not provided, the app will use demo data but still allow real user data updates via API.
+
+### 2. Real User Data Integration
+
+To show each user's actual nutrition data instead of demo data:
+
+#### Option A: Update via API (Recommended)
+
+```python
+import requests
+
+def update_user_mini_app(user_id, targets, consumed_today, meal_count):
+    """Update user's nutrition data in the mini app"""
+    url = "https://your-mini-app.onrender.com/api/update-user-data"
+    data = {
+        "user_id": str(user_id),
+        "targets": {
+            "calories": targets.get('calories', 2000),
+            "protein_g": targets.get('protein_g', 150),
+            "fats_g": targets.get('fats_g', 65),
+            "carbs_g": targets.get('carbs_g', 250)
+        },
+        "consumed_today": {
+            "calories": consumed_today.get('calories', 0),
+            "protein_g": consumed_today.get('protein_g', 0),
+            "fats_g": consumed_today.get('fats_g', 0),
+            "carbs_g": consumed_today.get('carbs_g', 0)
+        },
+        "meal_count": meal_count
+    }
+
+    response = requests.post(url, json=data)
+    return response.json()
+
+# Usage in your bot:
+update_user_mini_app(
+    user_id=message.from_user.id,
+    targets=user_nutrition_targets,
+    consumed_today=user_daily_consumption,
+    meal_count=user_meal_count
+)
+```
+
+#### Option B: Direct Function Call
+
+If your bot runs on the same server, you can import the utility function:
+
+```python
+from web_server import update_user_nutrition_data
+
+# Update user data
+update_user_nutrition_data(
+    user_id="123456789",
+    targets={'calories': 2000, 'protein_g': 150, 'fats_g': 65, 'carbs_g': 250},
+    consumed_today={'calories': 450, 'protein_g': 35, 'fats_g': 15, 'carbs_g': 60},
+    meal_count=2
+)
+```
+
+### 3. Local Development
 
 ```bash
 # Install dependencies

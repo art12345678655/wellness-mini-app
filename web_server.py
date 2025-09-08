@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Web server wrapper for Render deployment.
-Provides health check endpoint and runs the Telegram bot.
+Nutrition Mini App Server
+Provides real-time nutrition data for Telegram users
 """
 
 import os
@@ -11,18 +11,79 @@ from aiohttp.web import Request, Response
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Sample user data - in production, this would come from a database
-USER_DATA = {
+# In-memory storage for user nutrition data
+# In production, this should be replaced with a proper database
+USER_DATA = {}
+
+# Sample user data for testing
+sample_data = {
     'user_123': {
-        'calories': {'value': 2199, 'total': 2500},
-        'protein': {'value': 161, 'total': 200},
-        'carbs': {'value': 251, 'total': 300},
-        'fats': {'value': 61, 'total': 80}
+        'user_id': 'user_123',
+        'targets': {'calories': 2500, 'protein_g': 200, 'fats_g': 80, 'carbs_g': 300},
+        'consumed_today': {'calories': 301, 'protein_g': 39, 'fats_g': 19, 'carbs_g': 49},
+        'remaining': {'calories': 2199, 'protein_g': 161, 'fats_g': 61, 'carbs_g': 251},
+        'progress': {'calories': 0.12, 'protein_g': 0.195, 'fats_g': 0.2375, 'carbs_g': 0.1633},
+        'meal_count': 1
     }
 }
+
+# Initialize with sample data
+USER_DATA.update(sample_data)
+
+# Utility function for bots to update user data
+def update_user_nutrition_data(user_id, targets=None, consumed_today=None, meal_count=0):
+    """
+    Utility function for bots to update user nutrition data.
+
+    Args:
+        user_id (str): Telegram user ID
+        targets (dict): User's daily nutrition targets
+        consumed_today (dict): What user has consumed today
+        meal_count (int): Number of meals logged today
+
+    Example:
+        update_user_nutrition_data(
+            user_id="123456789",
+            targets={'calories': 2000, 'protein_g': 150, 'fats_g': 65, 'carbs_g': 250},
+            consumed_today={'calories': 450, 'protein_g': 35, 'fats_g': 15, 'carbs_g': 60},
+            meal_count=2
+        )
+    """
+    user_id_str = str(user_id)
+
+    # Calculate remaining amounts
+    remaining = {}
+    progress = {}
+
+    if targets and consumed_today:
+        remaining = {
+            'calories': max(0, targets.get('calories', 2000) - consumed_today.get('calories', 0)),
+            'protein_g': max(0, targets.get('protein_g', 150) - consumed_today.get('protein_g', 0)),
+            'fats_g': max(0, targets.get('fats_g', 65) - consumed_today.get('fats_g', 0)),
+            'carbs_g': max(0, targets.get('carbs_g', 250) - consumed_today.get('carbs_g', 0))
+        }
+
+        progress = {
+            'calories': min(1.0, consumed_today.get('calories', 0) / targets.get('calories', 2000)),
+            'protein_g': min(1.0, consumed_today.get('protein_g', 0) / targets.get('protein_g', 150)),
+            'fats_g': min(1.0, consumed_today.get('fats_g', 0) / targets.get('fats_g', 65)),
+            'carbs_g': min(1.0, consumed_today.get('carbs_g', 0) / targets.get('carbs_g', 250))
+        }
+
+    USER_DATA[user_id_str] = {
+        'user_id': user_id_str,
+        'targets': targets or {'calories': 2000, 'protein_g': 150, 'fats_g': 65, 'carbs_g': 250},
+        'consumed_today': consumed_today or {'calories': 0, 'protein_g': 0, 'fats_g': 0, 'carbs_g': 0},
+        'remaining': remaining or {'calories': 2000, 'protein_g': 150, 'fats_g': 65, 'carbs_g': 250},
+        'progress': progress or {'calories': 0, 'protein_g': 0, 'fats_g': 0, 'carbs_g': 0},
+        'meal_count': meal_count
+    }
+
+    print(f"Updated nutrition data for user {user_id}: {USER_DATA[user_id_str]}")
+    return USER_DATA[user_id_str]
 
 async def nutrition_dashboard(request: Request) -> Response:
     """Serve the nutrition dashboard HTML."""
@@ -143,6 +204,9 @@ async def api_nutrition_data(request: Request) -> Response:
     """API endpoint to get real nutrition data for dashboard."""
     user_id = request.query.get('user_id', 'user_123')
 
+    # Log the incoming request for debugging
+    print(f"API Request - User ID: {user_id}")
+
     try:
         from config import SUPABASE_AVAILABLE
 
@@ -221,6 +285,14 @@ async def api_nutrition_data(request: Request) -> Response:
     except Exception as e:
         logger.error(f"Error fetching nutrition data for user {user_id}: {e}")
         # Return default data on error
+        # Try to get real user data from in-memory storage
+        real_user_data = USER_DATA.get(user_id)
+        if real_user_data:
+            print(f"Found real data for user {user_id}: {real_user_data}")
+            return web.json_response(real_user_data)
+
+        # Fallback to demo data
+        print(f"Using demo data for user {user_id}")
         return web.json_response({
             'user_id': user_id,
             'targets': {'calories': 2500, 'protein_g': 200, 'fats_g': 80, 'carbs_g': 300},
@@ -229,6 +301,29 @@ async def api_nutrition_data(request: Request) -> Response:
             'progress': {'calories': 0.12, 'protein_g': 0.195, 'fats_g': 0.2375, 'carbs_g': 0.1633},
             'meal_count': 1
         })
+
+async def api_update_user_data(request: Request) -> Response:
+    """API endpoint for bot to update user nutrition data."""
+    try:
+        data = await request.json()
+        user_id = str(data.get('user_id', 'user_123'))
+
+        # Store the real user data
+        USER_DATA[user_id] = {
+            'user_id': user_id,
+            'targets': data.get('targets', {'calories': 2500, 'protein_g': 200, 'fats_g': 80, 'carbs_g': 300}),
+            'consumed_today': data.get('consumed_today', {'calories': 0, 'protein_g': 0, 'fats_g': 0, 'carbs_g': 0}),
+            'remaining': data.get('remaining', {'calories': 2500, 'protein_g': 200, 'fats_g': 80, 'carbs_g': 300}),
+            'progress': data.get('progress', {'calories': 0, 'protein_g': 0, 'fats_g': 0, 'carbs_g': 0}),
+            'meal_count': data.get('meal_count', 0)
+        }
+
+        print(f"Updated real data for user {user_id}: {USER_DATA[user_id]}")
+        return web.json_response({'status': 'success', 'message': f'Updated data for user {user_id}'})
+
+    except Exception as e:
+        logger.error(f"Error updating user data: {e}")
+        return web.json_response({'status': 'error', 'message': str(e)}, status=400)
 
 def create_app():
     """Create the web application."""
@@ -240,9 +335,12 @@ def create_app():
     app.router.add_get('/api/user/{user_id}', api_user_data)
     app.router.add_post('/api/user/{user_id}', api_update_data)
     app.router.add_get('/api/nutrition-data', api_nutrition_data)
+    app.router.add_post('/api/update-user-data', api_update_user_data)
     
     return app
 
 if __name__ == '__main__':
+    import os
+    from config import PORT
     app = create_app()
-    web.run_app(app, host='0.0.0.0', port=8080)
+    web.run_app(app, host='0.0.0.0', port=PORT)

@@ -8,11 +8,15 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 
-# Validate Supabase configuration
+# For production, use fallback values if Supabase is not configured
+SUPABASE_AVAILABLE = bool(SUPABASE_URL and SUPABASE_ANON_KEY)
+print(f"Supabase Available: {SUPABASE_AVAILABLE}")
+
+# Default values for demo mode
 if not SUPABASE_URL:
-    raise ValueError("SUPABASE_URL environment variable is required. Get it from your Supabase project settings.")
+    SUPABASE_URL = "demo_url"
 if not SUPABASE_ANON_KEY:
-    raise ValueError("SUPABASE_ANON_KEY environment variable is required. Get it from your Supabase project settings.")
+    SUPABASE_ANON_KEY = "demo_key"
 
 # Mini App Configuration
 MINI_APP_URL = os.getenv("MINI_APP_URL", "https://your-mini-app.onrender.com")
