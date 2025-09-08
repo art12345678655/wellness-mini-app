@@ -1,0 +1,644 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Tracking App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: #f8f8f8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+
+        .card {
+            border-radius: 20px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Glowing effects for each card */
+        .card.calories {
+            background: #0D0D0D;
+            color: white;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 0 20px rgba(13, 13, 13, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card.calories .card-value {
+            font-size: 36px;
+            margin-bottom: 1px;
+        }
+
+        .card.calories .card-subtitle {
+            font-size: 10px;
+        }
+
+        .card.calories .card-header {
+            margin-bottom: 0;
+        }
+
+        .card.calories .progress-container {
+            width: 70px;
+            height: 70px;
+        }
+
+        /* Override conflicting styles */
+        .card.calories .card-value {
+            font-size: 36px !important;
+        }
+
+        .card.calories .progress-container {
+            width: 70px !important;
+            height: 70px !important;
+        }
+
+        .card.protein {
+            background: #a3bffb;
+            color: #1a1a1a;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 0 20px rgba(150, 184, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card.carbs {
+            background: #a7ffd7;
+            color: #1a1a1a;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 0 20px rgba(167, 199, 150, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card.fats {
+            background: #ffcd98;
+            color: #1a1a1a;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 0 20px rgba(249, 254, 134, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .card-value {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .card.calories .card-value {
+            font-size: 56px;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.7;
+            text-transform: capitalize;
+        }
+
+        .card-content {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 16px;
+        }
+
+        .card.protein .card-content,
+        .card.carbs .card-content,
+        .card.fats .card-content {
+            justify-content: center;
+        }
+
+        .card-value {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .card.calories .card-value {
+            font-size: 56px;
+        }
+
+        .progress-container {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card.calories .progress-container {
+            width: 70px;
+            height: 70px;
+        }
+
+        .progress-ring {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .progress-ring-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+
+        .card.protein .progress-ring-bg,
+        .card.carbs .progress-ring-bg,
+        .card.fats .progress-ring-bg {
+            stroke: rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-ring-fill {
+            fill: none;
+            stroke: white;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 0 100;
+            transition: stroke-dasharray 1s ease-in-out;
+        }
+
+        .card.protein .progress-ring-fill,
+        .card.carbs .progress-ring-fill,
+        .card.fats .progress-ring-fill {
+            stroke: #1a1a1a;
+        }
+
+        .small-cards {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+        }
+
+        .card.protein,
+        .card.carbs,
+        .card.fats {
+            padding: 20px;
+            flex: 1;
+        }
+
+        .card.protein .card-value,
+        .card.carbs .card-value,
+        .card.fats .card-value {
+            font-size: 32px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .container {
+                gap: 16px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .card.calories {
+                padding: 12px;
+                height: 100px;
+            }
+            
+            .small-cards {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .card-value {
+                font-size: 40px;
+            }
+            
+            .card.calories .card-value {
+                font-size: 48px;
+            }
+            
+            .card.protein .card-value,
+            .card.carbs .card-value,
+            .card.fats .card-value {
+                font-size: 28px;
+            }
+            
+            .progress-container {
+                width: 50px;
+                height: 50px;
+            }
+
+            .card.calories .progress-container {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .progress-ring-bg,
+            .progress-ring-fill {
+                stroke-width: 6;
+            }
+            
+            .input-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+
+        /* Start progress rings from top (12 o'clock position) */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-fill {
+            transition: stroke-dashoffset 1s ease-out;
+        }
+
+        /* Emoji styling inside rings */
+        .ring-emoji {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* Larger emoji for calories ring */
+        .card.calories .ring-emoji {
+            font-size: 28px;
+        }
+
+        /* Smaller emoji for nutrition rings */
+        .card.protein .ring-emoji,
+        .card.fats .ring-emoji,
+        .card.carbs .ring-emoji {
+            font-size: 16px;
+        }
+
+        /* Protein emoji styling */
+        .card.protein .ring-emoji {
+            font-size: 16px;
+        }
+    </style>
+
+    <!-- Telegram WebApp Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+
+        // Get user data from Telegram
+        let telegramUserId = null;
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            telegramUserId = tg.initDataUnsafe.user.id;
+            console.log('Telegram User ID:', telegramUserId);
+
+            // Update USER_CONFIG with Telegram user ID if available
+            if (window.USER_CONFIG && telegramUserId) {
+                window.USER_CONFIG.userId = telegramUserId.toString();
+            }
+        }
+
+        // Expand the app to full height
+        tg.expand();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Calories Card (Large) -->
+        <div class="card calories">
+            <div class="card-header">
+                <div class="card-value" id="caloriesValue">2199</div>
+                <div class="card-subtitle">Kcal Left</div>
+            </div>
+            <div class="card-content">
+                <div class="progress-container">
+                    <svg class="progress-ring" viewBox="0 0 100 100">
+                        <circle class="progress-ring-bg" cx="50" cy="50" r="40"></circle>
+                        <circle class="progress-ring-fill" cx="50" cy="50" r="40" id="caloriesProgress"></circle>
+                    </svg>
+                    <div class="ring-emoji">🔥</div>
+                </div>
+            </div>
+            
+
+            
+        </div>
+
+        <!-- Small Cards Row -->
+        <div class="small-cards">
+            <!-- Protein Card -->
+            <div class="card protein">
+                <div class="card-header">
+                    <div class="card-value" id="proteinValue">161</div>
+                    <div class="card-subtitle">Left</div>
+                </div>
+                <div class="card-content">
+                    <div class="progress-container">
+                        <svg class="progress-ring" viewBox="0 0 100 100">
+                            <circle class="progress-ring-bg" cx="50" cy="50" r="40"></circle>
+                            <circle class="progress-ring-fill" cx="50" cy="50" r="40" id="proteinProgress"></circle>
+                        </svg>
+                        <div class="ring-emoji">🍗</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fats Card -->
+            <div class="card fats">
+                <div class="card-header">
+                    <div class="card-value" id="fatsValue">61</div>
+                    <div class="card-subtitle">Left</div>
+                </div>
+                <div class="card-content">
+                    <div class="progress-container">
+                        <svg class="progress-ring" viewBox="0 0 100 100">
+                            <circle class="progress-ring-bg" cx="50" cy="50" r="40"></circle>
+                            <circle class="progress-ring-fill" cx="50" cy="50" r="40" id="fatsProgress"></circle>
+                        </svg>
+                        <div class="ring-emoji">🥑</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carbs Card -->
+            <div class="card carbs">
+                <div class="card-header">
+                    <div class="card-value" id="carbsValue">251</div>
+                    <div class="card-subtitle">Left</div>
+                </div>
+                <div class="card-content">
+                    <div class="progress-container">
+                        <svg class="progress-ring" viewBox="0 0 100 100">
+                            <circle class="progress-ring-bg" cx="50" cy="50" r="40"></circle>
+                            <circle class="progress-ring-fill" cx="50" cy="50" r="40" id="carbsProgress"></circle>
+                        </svg>
+                        <div class="ring-emoji">🌾</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Progress ring logic using the simple approach from your reference file
+        function setProgress(circle, percent) {
+            const radius = circle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+
+            // Set initial state (full ring, no progress)
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = circumference;
+
+            // Animate to the target progress after a brief delay
+            setTimeout(() => {
+                const offset = circumference - (percent * circumference);
+                circle.style.strokeDashoffset = offset;
+            }, 50);
+        }
+
+        class NutritionTracker {
+            constructor() {
+                // User profile data - will be loaded from API
+                this.userProfile = {
+                    goals: {
+                        calories: 2500,
+                        protein: 200, // grams
+                        carbs: 300,   // grams
+                        fats: 80      // grams
+                    },
+                    consumed: {
+                        calories: 301,  // consumed today
+                        protein: 39,    // grams consumed
+                        carbs: 49,      // grams consumed
+                        fats: 19        // grams consumed
+                    }
+                };
+
+                this.isInitialized = false;
+                this.init();
+            }
+
+            async init() {
+                if (this.isInitialized) {
+                    console.log('Already initialized, skipping');
+                    return;
+                }
+
+                await this.loadUserData();
+                this.updateValues();
+                this.updateProgressRings();
+                this.isInitialized = true;
+                console.log('Data loaded and stable - no more changes');
+            }
+
+            // Load user data from backend API
+            async loadUserData() {
+                try {
+                    // Use Telegram user ID if available, otherwise fall back to URL parameter or default
+                    let userId = 'user_123';
+
+                    if (telegramUserId) {
+                        userId = telegramUserId.toString();
+                    } else if (USER_CONFIG && USER_CONFIG.userId) {
+                        userId = USER_CONFIG.userId;
+                    }
+
+                    const apiUrl = USER_CONFIG ? `${USER_CONFIG.apiBaseUrl}/api/nutrition-data?user_id=${userId}` : `/api/nutrition-data?user_id=${userId}`;
+
+                    console.log('Fetching data for user ID:', userId);
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+
+                    // Update user profile with real data
+                    this.userProfile.goals = {
+                        calories: data.targets.calories,
+                        protein: data.targets.protein_g,
+                        carbs: data.targets.carbs_g,
+                        fats: data.targets.fats_g
+                    };
+
+                    this.userProfile.consumed = {
+                        calories: data.consumed_today.calories,
+                        protein: data.consumed_today.protein_g,
+                        carbs: data.consumed_today.carbs_g,
+                        fats: data.consumed_today.fats_g
+                    };
+
+                    console.log('Loaded user data:', data);
+                } catch (error) {
+                    console.error('Failed to load user data:', error);
+                    // Keep default values if API fails
+                }
+            }
+
+            // Calculate remaining amounts (goal - consumed)
+            getRemaining(nutrient) {
+                return Math.max(0, this.userProfile.goals[nutrient] - this.userProfile.consumed[nutrient]);
+            }
+
+            // Calculate progress percentage (consumed / goal)
+            getProgress(nutrient) {
+                return this.userProfile.consumed[nutrient] / this.userProfile.goals[nutrient];
+            }
+
+            updateValues() {
+                if (!this.isInitialized) {
+                    return; // Don't update until initialized
+                }
+
+                // Update display values to show remaining amounts
+                const remainingCalories = Math.round(this.getRemaining('calories'));
+                const remainingProtein = Math.round(this.getRemaining('protein'));
+                const remainingCarbs = Math.round(this.getRemaining('carbs'));
+                const remainingFats = Math.round(this.getRemaining('fats'));
+
+                document.getElementById('caloriesValue').textContent = remainingCalories;
+                document.getElementById('proteinValue').textContent = remainingProtein + 'g';
+                document.getElementById('carbsValue').textContent = remainingCarbs + 'g';
+                document.getElementById('fatsValue').textContent = remainingFats + 'g';
+
+                // Update subtitles - "Kcal Left" for calories, "Left" for others
+                document.querySelector('.card.calories .card-subtitle').textContent = 'Kcal Left';
+                document.querySelector('.card.protein .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.carbs .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.fats .card-subtitle').textContent = 'Left';
+
+                console.log('Values updated - stable data:', {
+                    calories: remainingCalories,
+                    protein: remainingProtein,
+                    carbs: remainingCarbs,
+                    fats: remainingFats
+                });
+            }
+
+            updateProgressRings() {
+                if (!this.isInitialized) {
+                    return; // Don't update until initialized
+                }
+
+                // Calculate progress based on consumed amounts (consumed / goal)
+                const caloriesProgress = this.getProgress('calories');
+                const proteinProgress = this.getProgress('protein');
+                const carbsProgress = this.getProgress('carbs');
+                const fatsProgress = this.getProgress('fats');
+
+                // Update each ring using the simple logic
+                const caloriesCircle = document.getElementById('caloriesProgress');
+                const proteinCircle = document.getElementById('proteinProgress');
+                const carbsCircle = document.getElementById('carbsProgress');
+                const fatsCircle = document.getElementById('fatsProgress');
+
+                // Initialize rings to 0 progress first, then animate to actual values
+                setProgress(caloriesCircle, 0);
+                setProgress(proteinCircle, 0);
+                setProgress(carbsCircle, 0);
+                setProgress(fatsCircle, 0);
+
+                // Animate to actual progress values with delays
+                setTimeout(() => setProgress(caloriesCircle, caloriesProgress), 200);
+                setTimeout(() => setProgress(proteinCircle, proteinProgress), 400);
+                setTimeout(() => setProgress(carbsCircle, carbsProgress), 600);
+                setTimeout(() => setProgress(fatsCircle, fatsProgress), 800);
+            }
+
+            // Method to update user profile data (for future integration with backend)
+            updateUserProfile(newConsumed) {
+                this.userProfile.consumed = { ...this.userProfile.consumed, ...newConsumed };
+                this.updateValues();
+                this.updateProgressRings();
+            }
+        }
+
+        // Initialize the app
+        let nutritionTracker;
+        let isInitialized = false;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!isInitialized) {
+                isInitialized = true;
+                nutritionTracker = new NutritionTracker();
+                await nutritionTracker.init();
+                console.log('Nutrition tracker initialized with stable data');
+            }
+        });
+
+        // Function to update nutrition data from external sources (API, user input, etc.)
+        function updateUserNutrition(consumedData) {
+            if (nutritionTracker) {
+                nutritionTracker.updateUserProfile(consumedData);
+            }
+        }
+
+        // Function to refresh data from API (disabled for stability)
+        async function refreshNutritionData() {
+            if (nutritionTracker && nutritionTracker.isInitialized) {
+                console.log('Refresh disabled - data should remain stable');
+                // await nutritionTracker.loadUserData();
+                // nutritionTracker.updateValues();
+                // nutritionTracker.updateProgressRings();
+            }
+        }
+
+        // Auto-refresh disabled - data should remain stable
+        // setInterval(refreshNutritionData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
+ 
