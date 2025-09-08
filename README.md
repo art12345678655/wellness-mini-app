@@ -130,14 +130,65 @@ MINI_APP_URL=https://your-mini-app.onrender.com
 
 ```
 wellness-mini-app/
-├── mini_app_server.py      # Main web server
+├── mini_app_server.py      # Main web server with real user data support
 ├── config.py               # Configuration and environment variables
 ├── supabase_db.py          # Supabase database client
 ├── nutrition_rings.html    # Frontend dashboard
+├── nutritions_files.html   # Alternative dashboard layout
+├── web_server.py          # Alternative aiohttp server implementation
 ├── requirements.txt        # Python dependencies
 ├── .gitignore             # Git ignore rules
 └── README.md              # This file
 ```
+
+## 🔄 Real User Data Integration
+
+The mini app now supports real user data through API endpoints:
+
+### For Bot Developers
+
+To update user nutrition data, your bot can send POST requests:
+
+```python
+import requests
+
+def update_user_nutrition(user_id, targets, consumed_today, meal_count=0):
+    """Update user's nutrition data in the mini app"""
+    url = "https://your-mini-app.onrender.com/api/update-user-data"
+    data = {
+        "user_id": str(user_id),
+        "targets": {
+            "calories": targets.get('calories', 2000),
+            "protein_g": targets.get('protein_g', 150),
+            "fats_g": targets.get('fats_g', 65),
+            "carbs_g": targets.get('carbs_g', 250)
+        },
+        "consumed_today": {
+            "calories": consumed_today.get('calories', 0),
+            "protein_g": consumed_today.get('protein_g', 0),
+            "fats_g": consumed_today.get('fats_g', 0),
+            "carbs_g": consumed_today.get('carbs_g', 0)
+        },
+        "meal_count": meal_count
+    }
+
+    response = requests.post(url, json=data)
+    return response.json()
+
+# Example usage in your bot:
+update_user_nutrition(
+    user_id=532684618,  # Telegram user ID
+    targets={'calories': 2500, 'protein_g': 200, 'fats_g': 80, 'carbs_g': 300},
+    consumed_today={'calories': 301, 'protein_g': 39, 'fats_g': 19, 'carbs_g': 49},
+    meal_count=1
+)
+```
+
+### API Endpoints
+
+- `GET /nutrition-dashboard?user_id={telegram_id}` - Get user's nutrition dashboard
+- `POST /api/update-user-data` - Update user's nutrition data
+- `GET /health` - Health check endpoint
 
 ## 🔌 API Endpoints
 
