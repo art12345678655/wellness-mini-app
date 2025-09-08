@@ -15,21 +15,89 @@ import time
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# In-memory storage for user nutrition data
+# In production, this should be replaced with a proper database
+USER_DATA = {}
+
+# Sample user data for testing
+sample_data = {
+    'user_123': {
+        'user_id': 'user_123',
+        'targets': {'calories': 2500, 'protein_g': 200, 'fats_g': 80, 'carbs_g': 300},
+        'consumed_today': {'calories': 301, 'protein_g': 39, 'fats_g': 19, 'carbs_g': 49},
+        'remaining': {'calories': 2199, 'protein_g': 161, 'fats_g': 61, 'carbs_g': 251},
+        'progress': {'calories': 0.12, 'protein_g': 0.195, 'fats_g': 0.2375, 'carbs_g': 0.1633},
+        'meal_count': 1
+    }
+}
+
+# Initialize with sample data
+USER_DATA.update(sample_data)
+
+def update_user_nutrition_data(user_id, targets=None, consumed_today=None, meal_count=0):
+    """
+    Utility function for bots to update user nutrition data.
+    """
+    user_id_str = str(user_id)
+
+    # Calculate remaining amounts
+    remaining = {}
+    progress = {}
+
+    if targets and consumed_today:
+        remaining = {
+            'calories': max(0, targets.get('calories', 2000) - consumed_today.get('calories', 0)),
+            'protein_g': max(0, targets.get('protein_g', 150) - consumed_today.get('protein_g', 0)),
+            'fats_g': max(0, targets.get('fats_g', 65) - consumed_today.get('fats_g', 0)),
+            'carbs_g': max(0, targets.get('carbs_g', 250) - consumed_today.get('carbs_g', 0))
+        }
+
+        progress = {
+            'calories': min(1.0, consumed_today.get('calories', 0) / targets.get('calories', 2000)),
+            'protein_g': min(1.0, consumed_today.get('protein_g', 0) / targets.get('protein_g', 150)),
+            'fats_g': min(1.0, consumed_today.get('fats_g', 0) / targets.get('fats_g', 65)),
+            'carbs_g': min(1.0, consumed_today.get('carbs_g', 0) / targets.get('carbs_g', 250))
+        }
+
+    USER_DATA[user_id_str] = {
+        'user_id': user_id_str,
+        'targets': targets or {'calories': 2000, 'protein_g': 150, 'fats_g': 65, 'carbs_g': 250},
+        'consumed_today': consumed_today or {'calories': 0, 'protein_g': 0, 'fats_g': 0, 'carbs_g': 0},
+        'remaining': remaining or {'calories': 2000, 'protein_g': 150, 'fats_g': 65, 'carbs_g': 250},
+        'progress': progress or {'calories': 0, 'protein_g': 0, 'fats_g': 0, 'carbs_g': 0},
+        'meal_count': meal_count
+    }
+
+    logger.info(f"Updated nutrition data for user {user_id}: {USER_DATA[user_id_str]}")
+    return USER_DATA[user_id_str]
+
 class SupabaseMiniApp:
-    """Simple mock Supabase client"""
+    """Simple mock Supabase client with real user data support"""
     def __init__(self):
         pass
 
     def get_user_nutrition_data(self, user_id: str) -> dict:
-        """Get mock nutrition data"""
+        """Get nutrition data for user"""
         logger.info(f"Getting nutrition data for user {user_id}")
 
-        # Mock data - replace with real Supabase calls later
+        # Check if we have real user data
+        user_data = USER_DATA.get(str(user_id))
+        if user_data:
+            logger.info(f"Found real data for user {user_id}")
+            return {
+                'calories': {'value': user_data['remaining']['calories'], 'total': user_data['targets']['calories']},
+                'protein': {'value': user_data['remaining']['protein_g'], 'total': user_data['targets']['protein_g']},
+                'carbs': {'value': user_data['remaining']['carbs_g'], 'total': user_data['targets']['carbs_g']},
+                'fats': {'value': user_data['remaining']['fats_g'], 'total': user_data['targets']['fats_g']}
+            }
+
+        # Fallback to demo data
+        logger.info(f"Using demo data for user {user_id}")
         return {
-            'calories': {'value': 1500, 'total': 2000},
-            'protein': {'value': 80, 'total': 150},
-            'carbs': {'value': 200, 'total': 250},
-            'fats': {'value': 50, 'total': 65}
+            'calories': {'value': 2199, 'total': 2500},
+            'protein': {'value': 161, 'total': 200},
+            'carbs': {'value': 251, 'total': 300},
+            'fats': {'value': 61, 'total': 80}
         }
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -54,6 +122,56 @@ class RequestHandler(BaseHTTPRequestHandler):
         except Exception as e:
             logger.error(f"❌ Error handling request: {e}")
             self.send_error(500, f"Internal Server Error: {str(e)}")
+
+    def do_POST(self):
+        """Handle POST requests"""
+        parsed_url = urlparse(self.path)
+        path = parsed_url.path
+
+        logger.info(f"📡 POST Request: {path}")
+
+        try:
+            if path == '/api/update-user-data':
+                self.handle_update_user_data()
+            else:
+                self.send_error(404, "Not Found")
+
+        except Exception as e:
+            logger.error(f"❌ Error handling POST request: {e}")
+            self.send_error(500, f"Internal Server Error: {str(e)}")
+
+    def handle_update_user_data(self):
+        """Handle user data update requests"""
+        try:
+            # Read the request body
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+
+            user_id = str(data.get('user_id', 'user_123'))
+
+            # Update user data
+            update_user_nutrition_data(
+                user_id=user_id,
+                targets=data.get('targets'),
+                consumed_today=data.get('consumed_today'),
+                meal_count=data.get('meal_count', 0)
+            )
+
+            # Send success response
+            response = {
+                'status': 'success',
+                'message': f'Updated data for user {user_id}'
+            }
+
+            self.send_json_response(response)
+
+        except Exception as e:
+            logger.error(f"❌ Error updating user data: {e}")
+            self.send_json_response({
+                'status': 'error',
+                'message': str(e)
+            }, status_code=400)
 
     def handle_nutrition_dashboard(self, query_params):
         """Serve the nutrition dashboard"""
@@ -136,16 +254,22 @@ class RequestHandler(BaseHTTPRequestHandler):
     def inject_user_data(self, html_content, user_data):
         """Inject user data into HTML template"""
         # Calculate progress based on consumed amounts (consumed / goal)
-        calories_progress = user_data['calories']['value'] / user_data['calories']['total']
-        protein_progress = user_data['protein']['value'] / user_data['protein']['total']
-        fat_progress = user_data['fats']['value'] / user_data['fats']['total']
-        carbs_progress = user_data['carbs']['value'] / user_data['carbs']['total']
+        # user_data['calories']['value'] is remaining, so consumed = total - remaining
+        calories_consumed = user_data['calories']['total'] - user_data['calories']['value']
+        protein_consumed = user_data['protein']['total'] - user_data['protein']['value']
+        fat_consumed = user_data['fats']['total'] - user_data['fats']['value']
+        carbs_consumed = user_data['carbs']['total'] - user_data['carbs']['value']
 
-        # Calculate remaining amounts (goal - consumed)
-        calories_remaining = user_data['calories']['total'] - user_data['calories']['value']
-        protein_remaining = user_data['protein']['total'] - user_data['protein']['value']
-        fat_remaining = user_data['fats']['total'] - user_data['fats']['value']
-        carbs_remaining = user_data['carbs']['total'] - user_data['carbs']['value']
+        calories_progress = calories_consumed / user_data['calories']['total']
+        protein_progress = protein_consumed / user_data['protein']['total']
+        fat_progress = fat_consumed / user_data['fats']['total']
+        carbs_progress = carbs_consumed / user_data['carbs']['total']
+
+        # Remaining amounts are already in user_data['calories']['value']
+        calories_remaining = user_data['calories']['value']
+        protein_remaining = user_data['protein']['value']
+        fat_remaining = user_data['fats']['value']
+        carbs_remaining = user_data['carbs']['value']
 
         # Update display values to show remaining amounts
         html_content = html_content.replace('id="caloriesValue">2199</div>', f'id="caloriesValue">{calories_remaining}</div>')
@@ -153,11 +277,11 @@ class RequestHandler(BaseHTTPRequestHandler):
         html_content = html_content.replace('id="carbsValue">251</div>', f'id="carbsValue">{carbs_remaining}g</div>')
         html_content = html_content.replace('id="fatsValue">61</div>', f'id="fatsValue">{fat_remaining}g</div>')
 
-        # Update subtitles to show consumed amounts
-        html_content = html_content.replace('calories left</div>', f'{user_data["calories"]["value"]} cal consumed</div>')
-        html_content = html_content.replace('protein left</div>', f'{user_data["protein"]["value"]}g consumed</div>')
-        html_content = html_content.replace('carbs left</div>', f'{user_data["carbs"]["value"]}g consumed</div>')
-        html_content = html_content.replace('fats left</div>', f'{user_data["fats"]["value"]}g consumed</div>')
+        # Update subtitles to show "Kcal Left" and "Left"
+        html_content = html_content.replace('calories left</div>', 'Kcal Left</div>')
+        html_content = html_content.replace('protein left</div>', 'Left</div>')
+        html_content = html_content.replace('carbs left</div>', 'Left</div>')
+        html_content = html_content.replace('fats left</div>', 'Left</div>')
 
         # Update user profile data in JavaScript
         html_content = html_content.replace(
@@ -183,10 +307,10 @@ class RequestHandler(BaseHTTPRequestHandler):
                         fats: {user_data['fats']['total']}      // grams
                     }},
                     consumed: {{
-                        calories: {user_data['calories']['value']},  // consumed today
-                        protein: {user_data['protein']['value']},    // grams consumed
-                        carbs: {user_data['carbs']['value']},      // grams consumed
-                        fats: {user_data['fats']['value']}        // grams consumed
+                        calories: {calories_consumed},  // consumed today
+                        protein: {protein_consumed},    // grams consumed
+                        carbs: {carbs_consumed},      // grams consumed
+                        fats: {fat_consumed}        // grams consumed
                     }}
                 }};'''
         )
