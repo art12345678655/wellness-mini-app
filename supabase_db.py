@@ -14,6 +14,23 @@ class SupabaseMiniApp:
     def __init__(self):
         self.client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+    async def get_user_profile(self, user_telegram_id: int) -> Dict:
+        """Get user's complete profile including nutrition targets - SAME AS BOT LOGIC"""
+        try:
+            logger.info(f"Getting user profile for user {user_telegram_id}")
+            result = self.client.table('users').select('calorie_target, protein_target_g, fat_target_g, carbs_target_g').eq('user_id', user_telegram_id).execute()
+
+            if result.data:
+                logger.info(f"Found user profile: {result.data[0]}")
+                return result.data[0]
+            else:
+                logger.warning(f"No user profile found for user {user_telegram_id}")
+                return None
+
+        except Exception as e:
+            logger.exception(f"Failed to get user profile for user {user_telegram_id}: {e}")
+            return None
+
     async def get_user_nutrition_targets(self, user_telegram_id: int) -> Dict:
         """Get user's nutrition targets."""
         try:
