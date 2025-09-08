@@ -30,6 +30,14 @@ sample_data = {
         'remaining': {'calories': 2199, 'protein_g': 161, 'fats_g': 61, 'carbs_g': 251},
         'progress': {'calories': 0.12, 'protein_g': 0.195, 'fats_g': 0.2375, 'carbs_g': 0.1633},
         'meal_count': 1
+    },
+    '532684618': {
+        'user_id': '532684618',
+        'targets': {'calories': 2200, 'protein_g': 180, 'fats_g': 70, 'carbs_g': 280},
+        'consumed_today': {'calories': 450, 'protein_g': 55, 'fats_g': 25, 'carbs_g': 65},
+        'remaining': {'calories': 1750, 'protein_g': 125, 'fats_g': 45, 'carbs_g': 215},
+        'progress': {'calories': 0.205, 'protein_g': 0.306, 'fats_g': 0.357, 'carbs_g': 0.232},
+        'meal_count': 2
     }
 }
 
@@ -77,63 +85,79 @@ class NutritionDataHandler:
     """Handler for getting real nutrition data from Supabase"""
     
     def __init__(self):
-        self.supabase_client = SupabaseMiniApp()
+        try:
+            from config import SUPABASE_AVAILABLE
+            if SUPABASE_AVAILABLE:
+                self.supabase_client = SupabaseMiniApp()
+                self.has_supabase = True
+                logger.info("✅ Supabase client initialized successfully")
+            else:
+                self.supabase_client = None
+                self.has_supabase = False
+                logger.warning("⚠️ Supabase not available - using in-memory data")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Supabase: {e}")
+            self.supabase_client = None
+            self.has_supabase = False
     
     async def get_user_nutrition_data(self, user_id: str) -> dict:
         """Get real nutrition data from Supabase database"""
-        logger.info(f"Getting REAL nutrition data for user {user_id}")
+        logger.info(f"Getting nutrition data for user {user_id}")
         
-        try:
-            # Convert string user_id to int for database query
-            user_telegram_id = int(user_id)
-            
-            # Get user targets and consumed data from Supabase
-            targets_task = self.supabase_client.get_user_nutrition_targets(user_telegram_id)
-            consumed_task = self.supabase_client.get_today_nutrition_summary(user_telegram_id)
-            
-            # Run both queries concurrently
-            targets, consumed = await asyncio.gather(targets_task, consumed_task)
-            
-            logger.info(f"Database targets for user {user_id}: {targets}")
-            logger.info(f"Database consumed for user {user_id}: {consumed}")
-            
-            # Calculate remaining amounts
-            calories_remaining = max(0, targets['calorie_target'] - consumed['total_calories'])
-            protein_remaining = max(0, targets['protein_target_g'] - consumed['protein_g'])
-            carbs_remaining = max(0, targets['carbs_target_g'] - consumed['carbs_g'])
-            fats_remaining = max(0, targets['fat_target_g'] - consumed['fat_g'])
-            
-            logger.info(f"Calculated remaining - Calories: {calories_remaining}, Protein: {protein_remaining}g")
-            
-            return {
-                'calories': {'value': calories_remaining, 'total': targets['calorie_target']},
-                'protein': {'value': protein_remaining, 'total': targets['protein_target_g']},
-                'carbs': {'value': carbs_remaining, 'total': targets['carbs_target_g']},
-                'fats': {'value': fats_remaining, 'total': targets['fat_target_g']}
-            }
-            
-        except Exception as e:
-            logger.error(f"Error getting real data for user {user_id}: {e}")
-            
-            # Check if we have in-memory data as fallback
-            user_data = USER_DATA.get(str(user_id))
-            if user_data:
-                logger.info(f"Using in-memory data for user {user_id}")
+        # First try Supabase if available
+        if self.has_supabase and self.supabase_client:
+            try:
+                logger.info(f"🔍 Querying Supabase database for user {user_id}")
+                # Convert string user_id to int for database query
+                user_telegram_id = int(user_id)
+                
+                # Get user targets and consumed data from Supabase
+                targets_task = self.supabase_client.get_user_nutrition_targets(user_telegram_id)
+                consumed_task = self.supabase_client.get_today_nutrition_summary(user_telegram_id)
+                
+                # Run both queries concurrently
+                targets, consumed = await asyncio.gather(targets_task, consumed_task)
+                
+                logger.info(f"✅ Database targets for user {user_id}: {targets}")
+                logger.info(f"✅ Database consumed for user {user_id}: {consumed}")
+                
+                # Calculate remaining amounts
+                calories_remaining = max(0, targets['calorie_target'] - consumed['total_calories'])
+                protein_remaining = max(0, targets['protein_target_g'] - consumed['protein_g'])
+                carbs_remaining = max(0, targets['carbs_target_g'] - consumed['carbs_g'])
+                fats_remaining = max(0, targets['fat_target_g'] - consumed['fat_g'])
+                
+                logger.info(f"✅ Calculated REAL remaining - Calories: {calories_remaining}, Protein: {protein_remaining}g")
+                
                 return {
-                    'calories': {'value': user_data['remaining']['calories'], 'total': user_data['targets']['calories']},
-                    'protein': {'value': user_data['remaining']['protein_g'], 'total': user_data['targets']['protein_g']},
-                    'carbs': {'value': user_data['remaining']['carbs_g'], 'total': user_data['targets']['carbs_g']},
-                    'fats': {'value': user_data['remaining']['fats_g'], 'total': user_data['targets']['fats_g']}
+                    'calories': {'value': calories_remaining, 'total': targets['calorie_target']},
+                    'protein': {'value': protein_remaining, 'total': targets['protein_target_g']},
+                    'carbs': {'value': carbs_remaining, 'total': targets['carbs_target_g']},
+                    'fats': {'value': fats_remaining, 'total': targets['fat_target_g']}
                 }
-            
-            # Final fallback to demo data
-            logger.info(f"Using demo data for user {user_id}")
+                
+            except Exception as e:
+                logger.error(f"❌ Supabase query failed for user {user_id}: {e}")
+        
+        # Fallback to in-memory data
+        user_data = USER_DATA.get(str(user_id))
+        if user_data:
+            logger.info(f"📊 Using in-memory data for user {user_id}")
             return {
-                'calories': {'value': 2199, 'total': 2500},
-                'protein': {'value': 161, 'total': 200},
-                'carbs': {'value': 251, 'total': 300},
-                'fats': {'value': 61, 'total': 80}
+                'calories': {'value': user_data['remaining']['calories'], 'total': user_data['targets']['calories']},
+                'protein': {'value': user_data['remaining']['protein_g'], 'total': user_data['targets']['protein_g']},
+                'carbs': {'value': user_data['remaining']['carbs_g'], 'total': user_data['targets']['carbs_g']},
+                'fats': {'value': user_data['remaining']['fats_g'], 'total': user_data['targets']['fats_g']}
             }
+        
+        # Final fallback - but this should NOT happen if bot is updating data
+        logger.error(f"❌ NO DATA FOUND for user {user_id} - using demo data")
+        return {
+            'calories': {'value': 2199, 'total': 2500},
+            'protein': {'value': 161, 'total': 200},
+            'carbs': {'value': 251, 'total': 300},
+            'fats': {'value': 61, 'total': 80}
+        }
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
