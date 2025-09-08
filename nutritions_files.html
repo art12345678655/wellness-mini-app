@@ -17,7 +17,7 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             padding: 20px;
         }
 
@@ -238,51 +238,38 @@
             font-size: 32px;
         }
 
-        /* Responsive design for mobile */
+        /* Responsive design */
         @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
             .container {
-                gap: 12px;
-                max-width: 100%;
+                gap: 16px;
             }
             
             .card {
-                padding: 16px;
+                padding: 20px;
             }
             
             .card.calories {
-                padding: 16px;
-                height: auto;
-                min-height: 100px;
+                padding: 12px;
+                height: 100px;
             }
             
             .small-cards {
-                flex-direction: row;
-                gap: 8px;
-            }
-            
-            .card.protein,
-            .card.carbs,
-            .card.fats {
-                padding: 12px;
-                flex: 1;
+                flex-direction: column;
+                gap: 16px;
             }
             
             .card-value {
-                font-size: 32px;
+                font-size: 40px;
             }
             
             .card.calories .card-value {
-                font-size: 40px;
+                font-size: 48px;
             }
             
             .card.protein .card-value,
             .card.carbs .card-value,
             .card.fats .card-value {
-                font-size: 20px;
+                font-size: 28px;
             }
             
             .progress-container {
@@ -300,12 +287,9 @@
                 stroke-width: 6;
             }
             
-            .card-subtitle {
-                font-size: 10px;
-            }
-            
-            .card.calories .card-subtitle {
-                font-size: 9px;
+            .input-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
             }
         }
 
@@ -422,6 +406,23 @@
     </div>
 
     <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+
+        // Get user data from Telegram
+        let telegramUserId = null;
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            telegramUserId = tg.initDataUnsafe.user.id;
+            console.log('Telegram User ID:', telegramUserId);
+        }
+
+        // Configuration object
+        const USER_CONFIG = {
+            userId: telegramUserId ? telegramUserId.toString() : 'user_123',
+            apiBaseUrl: window.location.origin
+        };
+
         // Progress ring logic using the simple approach from your reference file
         function setProgress(circle, percent) {
             const radius = circle.r.baseVal.value;
@@ -455,7 +456,7 @@
                         fats: 19        // grams consumed
                     }
                 };
-                this.isInitialized = false; // Flag to prevent multiple initializations
+                this.isInitialized = false;
                 this.init();
             }
 
@@ -467,7 +468,7 @@
                 await this.loadUserData();
                 this.updateValues();
                 this.updateProgressRings();
-                this.isInitialized = true; // Set to true after successful initialization
+                this.isInitialized = true;
                 console.log('Data loaded and stable - no more changes');
             }
 
@@ -506,9 +507,9 @@
 
                 console.log('Values updated - stable data:', {
                     calories: this.getRemaining('calories'),
-                    protein: this.getRemaining('protein'),
-                    carbs: this.getRemaining('carbs'),
-                    fats: this.getRemaining('fats')
+                    protein: this.getRemaining('protein') + 'g',
+                    carbs: this.getRemaining('carbs') + 'g',
+                    fats: this.getRemaining('fats') + 'g'
                 });
             }
 
@@ -586,6 +587,9 @@
 
         // Auto-refresh disabled - data should remain stable
         // setInterval(refreshNutritionData, 5 * 60 * 1000);
+
+        // Expand the app to full height
+        tg.expand();
     </script>
 </body>
 </html>
