@@ -290,10 +290,10 @@ class RequestHandler(BaseHTTPRequestHandler):
     def read_html_file(self):
         """Read the HTML template file"""
         try:
-            with open('nutrition_rings.html', 'r', encoding='utf-8') as f:
+            with open('nutritions_files.html', 'r', encoding='utf-8') as f:
                 return f.read()
         except FileNotFoundError:
-            logger.error("❌ nutrition_rings.html not found")
+            logger.error("❌ nutritions_files.html not found")
             return None
 
     def inject_user_data(self, html_content, user_data):
