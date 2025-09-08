@@ -17,7 +17,7 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             padding: 20px;
         }
 
@@ -238,38 +238,51 @@
             font-size: 32px;
         }
 
-        /* Responsive design */
+        /* Responsive design for mobile */
         @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
             .container {
-                gap: 16px;
+                gap: 12px;
+                max-width: 100%;
             }
             
             .card {
-                padding: 20px;
+                padding: 16px;
             }
             
             .card.calories {
-                padding: 12px;
-                height: 100px;
+                padding: 16px;
+                height: auto;
+                min-height: 100px;
             }
             
             .small-cards {
                 flex-direction: column;
-                gap: 16px;
+                gap: 12px;
+            }
+            
+            .card.protein,
+            .card.carbs,
+            .card.fats {
+                padding: 16px;
+                flex: none;
             }
             
             .card-value {
-                font-size: 40px;
+                font-size: 32px;
             }
             
             .card.calories .card-value {
-                font-size: 48px;
+                font-size: 40px;
             }
             
             .card.protein .card-value,
             .card.carbs .card-value,
             .card.fats .card-value {
-                font-size: 28px;
+                font-size: 24px;
             }
             
             .progress-container {
@@ -287,9 +300,12 @@
                 stroke-width: 6;
             }
             
-            .input-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
+            .card-subtitle {
+                font-size: 10px;
+            }
+            
+            .card.calories .card-subtitle {
+                font-size: 9px;
             }
         }
 
