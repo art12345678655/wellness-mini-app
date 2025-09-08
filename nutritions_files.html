@@ -29,7 +29,6 @@
             gap: 20px;
         }
 
-
         .card {
             border-radius: 20px;
             padding: 24px;
@@ -415,13 +414,21 @@
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             telegramUserId = tg.initDataUnsafe.user.id;
             console.log('Telegram User ID:', telegramUserId);
+
+            // Update USER_CONFIG with Telegram user ID if available
+            if (window.USER_CONFIG && telegramUserId) {
+                window.USER_CONFIG.userId = telegramUserId.toString();
+            }
         }
 
-        // Configuration object
-        const USER_CONFIG = {
-            userId: telegramUserId ? telegramUserId.toString() : 'user_123',
-            apiBaseUrl: window.location.origin
-        };
+        // If we have a Telegram user ID, try to fetch real data immediately
+        if (telegramUserId) {
+            console.log('Fetching real data for Telegram user:', telegramUserId);
+            // The loadUserData function will be called by the NutritionTracker
+        }
+
+        // Expand the app to full height
+        tg.expand();
 
         // Progress ring logic using the simple approach from your reference file
         function setProgress(circle, percent) {
@@ -456,7 +463,7 @@
                         fats: 19        // grams consumed
                     }
                 };
-                this.isInitialized = false;
+                this.isInitialized = false; // Flag to prevent multiple executions
                 this.init();
             }
 
@@ -468,7 +475,7 @@
                 await this.loadUserData();
                 this.updateValues();
                 this.updateProgressRings();
-                this.isInitialized = true;
+                this.isInitialized = true; // Set to true after successful initialization
                 console.log('Data loaded and stable - no more changes');
             }
 
@@ -587,9 +594,6 @@
 
         // Auto-refresh disabled - data should remain stable
         // setInterval(refreshNutritionData, 5 * 60 * 1000);
-
-        // Expand the app to full height
-        tg.expand();
     </script>
 </body>
 </html>
