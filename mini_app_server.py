@@ -7,9 +7,11 @@ Uses only standard library - no external dependencies
 import os
 import json
 import logging
+import asyncio
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import time
+from supabase_db import SupabaseMiniApp
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -71,34 +73,67 @@ def update_user_nutrition_data(user_id, targets=None, consumed_today=None, meal_
     logger.info(f"Updated nutrition data for user {user_id}: {USER_DATA[user_id_str]}")
     return USER_DATA[user_id_str]
 
-class SupabaseMiniApp:
-    """Simple mock Supabase client with real user data support"""
+class NutritionDataHandler:
+    """Handler for getting real nutrition data from Supabase"""
+    
     def __init__(self):
-        pass
-
-    def get_user_nutrition_data(self, user_id: str) -> dict:
-        """Get nutrition data for user"""
-        logger.info(f"Getting nutrition data for user {user_id}")
-
-        # Check if we have real user data
-        user_data = USER_DATA.get(str(user_id))
-        if user_data:
-            logger.info(f"Found real data for user {user_id}")
+        self.supabase_client = SupabaseMiniApp()
+    
+    async def get_user_nutrition_data(self, user_id: str) -> dict:
+        """Get real nutrition data from Supabase database"""
+        logger.info(f"Getting REAL nutrition data for user {user_id}")
+        
+        try:
+            # Convert string user_id to int for database query
+            user_telegram_id = int(user_id)
+            
+            # Get user targets and consumed data from Supabase
+            targets_task = self.supabase_client.get_user_nutrition_targets(user_telegram_id)
+            consumed_task = self.supabase_client.get_today_nutrition_summary(user_telegram_id)
+            
+            # Run both queries concurrently
+            targets, consumed = await asyncio.gather(targets_task, consumed_task)
+            
+            logger.info(f"Database targets for user {user_id}: {targets}")
+            logger.info(f"Database consumed for user {user_id}: {consumed}")
+            
+            # Calculate remaining amounts
+            calories_remaining = max(0, targets['calorie_target'] - consumed['total_calories'])
+            protein_remaining = max(0, targets['protein_target_g'] - consumed['protein_g'])
+            carbs_remaining = max(0, targets['carbs_target_g'] - consumed['carbs_g'])
+            fats_remaining = max(0, targets['fat_target_g'] - consumed['fat_g'])
+            
+            logger.info(f"Calculated remaining - Calories: {calories_remaining}, Protein: {protein_remaining}g")
+            
             return {
-                'calories': {'value': user_data['remaining']['calories'], 'total': user_data['targets']['calories']},
-                'protein': {'value': user_data['remaining']['protein_g'], 'total': user_data['targets']['protein_g']},
-                'carbs': {'value': user_data['remaining']['carbs_g'], 'total': user_data['targets']['carbs_g']},
-                'fats': {'value': user_data['remaining']['fats_g'], 'total': user_data['targets']['fats_g']}
+                'calories': {'value': calories_remaining, 'total': targets['calorie_target']},
+                'protein': {'value': protein_remaining, 'total': targets['protein_target_g']},
+                'carbs': {'value': carbs_remaining, 'total': targets['carbs_target_g']},
+                'fats': {'value': fats_remaining, 'total': targets['fat_target_g']}
             }
-
-        # Fallback to demo data
-        logger.info(f"Using demo data for user {user_id}")
-        return {
-            'calories': {'value': 2199, 'total': 2500},
-            'protein': {'value': 161, 'total': 200},
-            'carbs': {'value': 251, 'total': 300},
-            'fats': {'value': 61, 'total': 80}
-        }
+            
+        except Exception as e:
+            logger.error(f"Error getting real data for user {user_id}: {e}")
+            
+            # Check if we have in-memory data as fallback
+            user_data = USER_DATA.get(str(user_id))
+            if user_data:
+                logger.info(f"Using in-memory data for user {user_id}")
+                return {
+                    'calories': {'value': user_data['remaining']['calories'], 'total': user_data['targets']['calories']},
+                    'protein': {'value': user_data['remaining']['protein_g'], 'total': user_data['targets']['protein_g']},
+                    'carbs': {'value': user_data['remaining']['carbs_g'], 'total': user_data['targets']['carbs_g']},
+                    'fats': {'value': user_data['remaining']['fats_g'], 'total': user_data['targets']['fats_g']}
+                }
+            
+            # Final fallback to demo data
+            logger.info(f"Using demo data for user {user_id}")
+            return {
+                'calories': {'value': 2199, 'total': 2500},
+                'protein': {'value': 161, 'total': 200},
+                'carbs': {'value': 251, 'total': 300},
+                'fats': {'value': 61, 'total': 80}
+            }
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -184,9 +219,16 @@ class RequestHandler(BaseHTTPRequestHandler):
         try:
             logger.info(f"📱 Mini app accessed by user {user_id}")
 
-            # Get user data
-            db = SupabaseMiniApp()
-            user_data = db.get_user_nutrition_data(user_id)
+            # Get user data from REAL database
+            nutrition_handler = NutritionDataHandler()
+            
+            # Run async database query
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                user_data = loop.run_until_complete(nutrition_handler.get_user_nutrition_data(user_id))
+            finally:
+                loop.close()
 
             # Read HTML template
             html_content = self.read_html_file()
