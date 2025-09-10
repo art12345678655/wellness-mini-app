@@ -236,6 +236,16 @@
             flex: 1;
         }
 
+        /* Mobile adjustments for nutrition cards */
+        @media (max-width: 480px) {
+            .card.protein,
+            .card.carbs,
+            .card.fats {
+                padding: 12px;
+                flex: 1;
+            }
+        }
+
         .card.protein .card-value,
         .card.carbs .card-value,
         .card.fats .card-value {
@@ -258,8 +268,8 @@
             }
             
             .small-cards {
-                flex-direction: column;
-                gap: 16px;
+                flex-direction: row;
+                gap: 12px;
             }
             
             .card-value {
@@ -273,12 +283,12 @@
             .card.protein .card-value,
             .card.carbs .card-value,
             .card.fats .card-value {
-                font-size: 28px;
+                font-size: 24px;
             }
             
             .progress-container {
-                width: 50px;
-                height: 50px;
+                width: 40px;
+                height: 40px;
             }
 
             .card.calories .progress-container {
