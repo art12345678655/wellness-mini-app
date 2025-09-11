@@ -1,7 +1,3 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,7 +28,6 @@
             flex-direction: column;
             gap: 20px;
         }
-
 
         .card {
             border-radius: 20px;
@@ -415,15 +410,15 @@
             filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
         }
 
+        /* Updated styles for day container and rings */
         .day-container {
             position: absolute;
             bottom: 20px;
-            left: 20px;
-            right: 20px;
+            left: 0;
+            right: 0;
             height: 100px;
             z-index: 10;
         }
-
 
         .day-column {
             display: flex;
@@ -440,16 +435,14 @@
             .day-container {
                 height: 80px;
                 bottom: 10px;
-                left: 10px;
-                right: 10px;
             }
         }
 
         .nutrition-rings {
             position: relative;
-            width: 60px;
-            height: 60px;
-            margin-bottom: 30px;
+            width: 40px; /* Reduced from 60px */
+            height: 40px; /* Reduced from 60px */
+            margin-bottom: 8px; /* Reduced from 30px */
             z-index: 15;
         }
 
@@ -462,13 +455,13 @@
         .ring-bg {
             fill: none;
             stroke: #f3f4f6;
-            stroke-width: 6;
+            stroke-width: 4; /* Reduced from 6 */
         }
 
         .ring-protein {
             fill: none;
             stroke: #a3bffb;
-            stroke-width: 6;
+            stroke-width: 4; /* Reduced from 6 */
             stroke-linecap: round;
             transition: stroke-dasharray 0.8s ease;
         }
@@ -476,7 +469,7 @@
         .ring-fats {
             fill: none;
             stroke: #ffcd98;
-            stroke-width: 6;
+            stroke-width: 4; /* Reduced from 6 */
             stroke-linecap: round;
             transition: stroke-dasharray 0.8s ease;
         }
@@ -484,7 +477,7 @@
         .ring-carbs {
             fill: none;
             stroke: #a7ffd7;
-            stroke-width: 6;
+            stroke-width: 4; /* Reduced from 6 */
             stroke-linecap: round;
             transition: stroke-dasharray 0.8s ease;
         }
@@ -494,7 +487,7 @@
             font-weight: 500;
             color: #6b7280;
             text-align: center;
-            margin-top: 10px;
+            margin-top: 5px; /* Reduced from 10px */
             margin-bottom: 0;
             z-index: 15;
         }
@@ -512,9 +505,9 @@
             }
             
             .nutrition-rings {
-                width: 50px;
-                height: 50px;
-                margin-bottom: 20px;
+                width: 30px; /* Reduced from 50px */
+                height: 30px; /* Reduced from 50px */
+                margin-bottom: 5px;
             }
             
             .day-label {
@@ -563,9 +556,6 @@
                     <div class="ring-emoji">🔥</div>
                 </div>
             </div>
-            
-
-            
         </div>
 
         <!-- Small Cards Row -->
@@ -644,104 +634,102 @@
                     <circle class="calorie-dot-svg" cx="0" cy="0" r="6"></circle>
                     <circle class="calorie-dot-svg" cx="0" cy="0" r="6"></circle>
                 </svg>
+                
+                <!-- Day container with nutrition rings -->
+                <div class="day-container">
+                    <!-- Day 1 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 188.4;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 150.7;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 113.0;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">M</div>
+                    </div>
+
+                    <!-- Day 2 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 219.8;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 175.8;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 131.9;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">T</div>
+                    </div>
+
+                    <!-- Day 3 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 251.2;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 200.9;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 150.7;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">W</div>
+                    </div>
+
+                    <!-- Day 4 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 188.4;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 150.7;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 113.0;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">T</div>
+                    </div>
+
+                    <!-- Day 5 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 219.8;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 175.8;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 131.9;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">F</div>
+                    </div>
+
+                    <!-- Day 6 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 251.2;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 200.9;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 150.7;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">S</div>
+                    </div>
+
+                    <!-- Day 7 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 188.4;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 150.7;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 113.0;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">S</div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="day-container">
-                <!-- Day 1 -->
-                <div class="day-column">
-                    <div class="nutrition-rings">
-                        <svg class="ring-svg" viewBox="0 0 100 100">
-                            <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 188.4;"></circle>
-                            <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 150.7;"></circle>
-                            <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 113.0;"></circle>
-                        </svg>
-                    </div>
-                    <div class="day-label">M</div>
-                </div>
-
-                <!-- Day 2 -->
-                <div class="day-column">
-                    <div class="nutrition-rings">
-                        <svg class="ring-svg" viewBox="0 0 100 100">
-                            <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 219.8;"></circle>
-                            <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 175.8;"></circle>
-                            <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 131.9;"></circle>
-                        </svg>
-                    </div>
-                    <div class="day-label">T</div>
-                </div>
-
-                <!-- Day 3 -->
-                <div class="day-column">
-                    <div class="nutrition-rings">
-                        <svg class="ring-svg" viewBox="0 0 100 100">
-                            <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 251.2;"></circle>
-                            <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 200.9;"></circle>
-                            <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 150.7;"></circle>
-                        </svg>
-                    </div>
-                    <div class="day-label">W</div>
-                </div>
-
-                <!-- Day 4 -->
-                <div class="day-column">
-                    <div class="nutrition-rings">
-                        <svg class="ring-svg" viewBox="0 0 100 100">
-                            <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 188.4;"></circle>
-                            <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 150.7;"></circle>
-                            <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 113.0;"></circle>
-                        </svg>
-                    </div>
-                    <div class="day-label">T</div>
-                </div>
-
-                <!-- Day 5 -->
-                <div class="day-column">
-                    <div class="nutrition-rings">
-                        <svg class="ring-svg" viewBox="0 0 100 100">
-                            <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 219.8;"></circle>
-                            <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 175.8;"></circle>
-                            <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 131.9;"></circle>
-                        </svg>
-                    </div>
-                    <div class="day-label">F</div>
-                </div>
-
-                <!-- Day 6 -->
-                <div class="day-column">
-                    <div class="nutrition-rings">
-                        <svg class="ring-svg" viewBox="0 0 100 100">
-                            <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 251.2;"></circle>
-                            <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 200.9;"></circle>
-                            <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 150.7;"></circle>
-                        </svg>
-                    </div>
-                    <div class="day-label">S</div>
-                </div>
-
-                <!-- Day 7 -->
-                <div class="day-column">
-                    <div class="nutrition-rings">
-                        <svg class="ring-svg" viewBox="0 0 100 100">
-                            <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                            <circle class="ring-protein" cx="50" cy="50" r="40" style="--progress: 188.4;"></circle>
-                            <circle class="ring-fats" cx="50" cy="50" r="32" style="--progress: 150.7;"></circle>
-                            <circle class="ring-carbs" cx="50" cy="50" r="24" style="--progress: 113.0;"></circle>
-                        </svg>
-                    </div>
-                    <div class="day-label">S</div>
-                </div>
-            </div>
-
-        </div>
-
     </div>
 
     <script>
@@ -859,7 +847,7 @@
 
                 document.getElementById('caloriesValue').textContent = remainingCalories;
                 document.getElementById('proteinValue').textContent = remainingProtein + 'g';
-                document.getElementById('carbsValue').textContent = remainingCarbs + 'g';
+                document.getElementById('carbsValue'). textContent = remainingCarbs + 'g';
                 document.getElementById('fatsValue').textContent = remainingFats + 'g';
 
                 // Update subtitles - "Kcal Left" for calories, "Left" for others
@@ -1097,8 +1085,6 @@
                     const xPercent = (dotX / 800) * 100; // 800 is the SVG viewBox width
                     
                     column.style.left = `${xPercent}%`;
-                    column.style.top = 'auto';
-                    column.style.bottom = '20px'; // Position at bottom of container
                 }
             });
             
@@ -1133,4 +1119,3 @@
     </script>
 </body>
 </html>
- 
