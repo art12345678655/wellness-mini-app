@@ -1089,11 +1089,13 @@
             
             // Position day columns to align with curve dots
             dayColumns.forEach((column, index) => {
-                if (dayPositions[index] !== undefined) {
+                if (cyanPoints[index]) {
+                    // Use the actual X coordinate of the curve dot
+                    const dotX = cyanPoints[index].x;
                     // Convert SVG position to container-relative position
                     const containerRect = document.querySelector('.chart-container').getBoundingClientRect();
                     const svgRect = svg.getBoundingClientRect();
-                    const relativeX = (dayPositions[index] / svgRect.width) * containerRect.width;
+                    const relativeX = (dotX / svgRect.width) * containerRect.width;
                     column.style.left = `${relativeX}px`;
                 }
             });
