@@ -351,6 +351,7 @@
             padding: 24px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             margin-top: 20px;
+            overflow: hidden;
         }
 
         .analytics-title {
@@ -365,7 +366,7 @@
             position: relative;
             height: 500px;
             margin-bottom: 20px;
-            overflow: visible;
+            overflow: hidden;
             padding: 40px 20px 120px 20px;
         }
 
@@ -415,7 +416,7 @@
 
         .day-container {
             position: absolute;
-            bottom: 0;
+            bottom: 10px;
             left: 0;
             right: 0;
             height: 100px;
@@ -426,7 +427,7 @@
         @media (max-width: 480px) {
             .day-container {
                 height: 80px;
-                bottom: 0;
+                bottom: 5px;
             }
         }
 
@@ -734,6 +735,7 @@
                     <div class="day-label">S</div>
                 </div>
             </div>
+
         </div>
 
     </div>
@@ -1093,6 +1095,7 @@
                     column.style.left = `${relativeX}px`;
                 }
             });
+            
         }
 
         // Initialize analytics chart
