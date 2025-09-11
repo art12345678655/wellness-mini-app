@@ -414,9 +414,11 @@
         }
 
         .day-container {
-            display: block;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
             height: 250px;
-            padding: 0;
+            padding: 0 20px;
             position: absolute;
             bottom: 40px;
             left: 0;
@@ -429,7 +431,7 @@
             .day-container {
                 height: 180px;
                 bottom: 20px;
-                padding: 0;
+                padding: 0 10px;
             }
         }
 
@@ -1040,16 +1042,16 @@
             const container = document.querySelector('.chart-container');
             container.style.height = '500px';
             
-            // Calculate X positions evenly distributed across the chart width (same as curve dots)
-            const svgPositions = [];
-            for (let i = 0; i < 7; i++) {
-                const x = (CHART_SETTINGS.svgWidth / 6) * i; // Distribute evenly across 800px width
-                svgPositions.push(x);
-            }
+            const dayPositions = [];
+            dayColumns.forEach((column) => {
+                const rect = column.getBoundingClientRect();
+                const containerRect = document.querySelector('.chart-container').getBoundingClientRect();
+                const relativeX = rect.left - containerRect.left + (rect.width / 2);
+                dayPositions.push(relativeX);
+            });
             
-            // Convert SVG positions back to relative positions for day columns
             const svgRect = svg.getBoundingClientRect();
-            const dayPositions = svgPositions.map(pos => (pos / CHART_SETTINGS.svgWidth) * svgRect.width);
+            const svgPositions = dayPositions.map(pos => (pos / svgRect.width) * CHART_SETTINGS.svgWidth);
             
             const greenPoints = [];
             const redPoints = [];
@@ -1080,15 +1082,6 @@
                 if (cyanPoints[index]) {
                     dot.setAttribute('cx', cyanPoints[index].x);
                     dot.setAttribute('cy', cyanPoints[index].y);
-                }
-            });
-            
-            // Position day columns to align with curve dots
-            dayColumns.forEach((column, index) => {
-                if (dayPositions[index] !== undefined) {
-                    column.style.position = 'absolute';
-                    column.style.left = `${dayPositions[index]}px`;
-                    column.style.transform = 'translateX(-50%)';
                 }
             });
         }
