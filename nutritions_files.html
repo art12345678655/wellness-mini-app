@@ -363,10 +363,10 @@
 
         .chart-container {
             position: relative;
-            height: 400px;
+            height: 500px;
             margin-bottom: 20px;
             overflow: visible;
-            padding: 20px;
+            padding: 40px 20px 120px 20px;
         }
 
         .chart-svg {
@@ -416,22 +416,21 @@
         .day-container {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            height: 100%;
+            align-items: flex-end;
+            height: 250px;
             padding: 0 20px;
             position: absolute;
-            top: 0;
+            bottom: 40px;
             left: 0;
             right: 0;
             z-index: 10;
-            pointer-events: none;
         }
 
         /* Mobile adjustments for day container */
         @media (max-width: 480px) {
             .day-container {
-                height: 100%;
-                top: 0;
+                height: 180px;
+                bottom: 20px;
                 padding: 0 10px;
             }
         }
@@ -443,16 +442,15 @@
             position: absolute;
             flex: 1;
             height: 100%;
-            justify-content: center;
+            justify-content: flex-end;
             transform: translateX(-50%);
-            pointer-events: auto;
         }
 
         .nutrition-rings {
             position: relative;
-            width: 50px;
-            height: 50px;
-            margin: 0;
+            width: 60px;
+            height: 60px;
+            margin-bottom: 30px;
             z-index: 15;
         }
 
@@ -510,14 +508,14 @@
             }
             
             .chart-container {
-                height: 250px;
-                padding: 15px 10px;
+                height: 300px;
+                padding: 15px 10px 60px 10px;
             }
             
             .nutrition-rings {
-                width: 40px;
-                height: 40px;
-                margin: 0;
+                width: 50px;
+                height: 50px;
+                margin-bottom: 20px;
             }
             
             .day-label {
