@@ -414,9 +414,11 @@
         }
 
         .day-container {
-            display: block;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
             height: 250px;
-            padding: 0;
+            padding: 0 20px;
             position: absolute;
             bottom: 40px;
             left: 0;
@@ -429,7 +431,7 @@
             .day-container {
                 height: 180px;
                 bottom: 20px;
-                padding: 0;
+                padding: 0 10px;
             }
         }
 
@@ -437,10 +439,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
+            position: absolute;
             flex: 1;
             height: 100%;
             justify-content: flex-end;
+            transform: translateX(-50%);
         }
 
         .nutrition-rings {
@@ -1040,7 +1043,7 @@
             const container = document.querySelector('.chart-container');
             container.style.height = '500px';
             
-            // Calculate evenly distributed X positions for both curves and rings
+            // Calculate X positions evenly distributed across the chart width (same as curve dots)
             const svgPositions = [];
             for (let i = 0; i < 7; i++) {
                 const x = (CHART_SETTINGS.svgWidth / 6) * i; // Distribute evenly across 800px width
@@ -1086,9 +1089,7 @@
             // Position day columns to align with curve dots
             dayColumns.forEach((column, index) => {
                 if (dayPositions[index] !== undefined) {
-                    column.style.position = 'absolute';
                     column.style.left = `${dayPositions[index]}px`;
-                    column.style.transform = 'translateX(-50%)';
                 }
             });
         }
