@@ -444,6 +444,7 @@
             height: 100%;
             justify-content: flex-end;
             transform: translateX(-50%);
+            top: 0;
         }
 
         .nutrition-rings {
@@ -496,7 +497,7 @@
             color: #6b7280;
             text-align: center;
             margin-top: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 0;
             z-index: 15;
         }
 
@@ -1041,7 +1042,7 @@
             svg.setAttribute('viewBox', `0 ${bounds.minY} 800 ${viewBoxHeight}`);
             
             const container = document.querySelector('.chart-container');
-            container.style.height = '400px';
+            container.style.height = '500px';
             
             // Calculate X positions evenly distributed across the chart width (same as curve dots)
             const svgPositions = [];
@@ -1089,7 +1090,11 @@
             // Position day columns to align with curve dots
             dayColumns.forEach((column, index) => {
                 if (dayPositions[index] !== undefined) {
-                    column.style.left = `${dayPositions[index]}px`;
+                    // Convert SVG position to container-relative position
+                    const containerRect = document.querySelector('.chart-container').getBoundingClientRect();
+                    const svgRect = svg.getBoundingClientRect();
+                    const relativeX = (dayPositions[index] / svgRect.width) * containerRect.width;
+                    column.style.left = `${relativeX}px`;
                 }
             });
         }
