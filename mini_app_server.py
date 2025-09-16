@@ -145,7 +145,10 @@ supabase_client = SupabaseMiniApp()
 async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
     """Get historical nutrition data for the last N days"""
     try:
+        logger.info(f"🔍 DEBUG: get_historical_nutrition_data called with user_id='{user_id}' (type: {type(user_id)}), days={days}")
+
         user_telegram_id = int(user_id)
+        logger.info(f"🔍 DEBUG: Converted user_id to user_telegram_id={user_telegram_id} (type: {type(user_telegram_id)})")
         logger.info(f"🍎 Getting {days} days of REAL historical nutrition data for user {user_telegram_id}")
 
         # Get user profile for targets (same for all days)
@@ -172,12 +175,17 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
 
         for i in range(days):
             target_date = today - datetime.timedelta(days=days - 1 - i)  # Start from N days ago
+            logger.info(f"🔍 DEBUG: Querying database for user_telegram_id={user_telegram_id}, date={target_date}")
+
             day_nutrition = await supabase_client.get_nutrition_summary_for_date(user_telegram_id, target_date)
+            logger.info(f"🔍 DEBUG: Raw database response for {target_date}: {day_nutrition}")
 
             calories_consumed = float(day_nutrition.get('total_calories', 0))
             protein_consumed = float(day_nutrition.get('total_protein_g', 0))
             carbs_consumed = float(day_nutrition.get('total_carbs_g', 0))
             fats_consumed = float(day_nutrition.get('total_fat_g', 0))
+
+            logger.info(f"🔍 DEBUG: Converted values for {target_date}: calories={calories_consumed}, protein={protein_consumed}, carbs={carbs_consumed}, fats={fats_consumed}")
 
             # Track real data statistics
             if calories_consumed > 0:
@@ -425,10 +433,16 @@ class RequestHandler(BaseHTTPRequestHandler):
             # Get user_id and days from query parameters
             user_id = query_params.get('user_id', ['user_123'])[0]
             days = int(query_params.get('days', ['7'])[0])
-            logger.info(f"📊 Historical API request for user: {user_id}, days: {days}")
+            logger.info(f"🔍 DEBUG: Historical API request - Raw user_id: {user_id}, days: {days}")
+
+            # DEBUG: Log the exact user ID we're using
+            logger.info(f"🔍 DEBUG: About to call get_historical_nutrition_data with user_id={user_id}")
 
             # Get historical nutrition data
             historical_data = asyncio.run(get_historical_nutrition_data(user_id, days))
+
+            # DEBUG: Log what we got back from the database
+            logger.info(f"🔍 DEBUG: Raw historical_data from database: {historical_data}")
 
             # Format response for frontend
             response = {
@@ -439,15 +453,27 @@ class RequestHandler(BaseHTTPRequestHandler):
             }
 
             # Convert historical data to expected format
-            for day_data in historical_data['historical_data']:
-                response["last_7_days"].append({
+            for i, day_data in enumerate(historical_data['historical_data']):
+                day_response = {
                     "date": day_data['date'],
                     "calories": day_data['calories'],
                     "protein": day_data['protein'],
                     "carbs": day_data['carbs'],
                     "fats": day_data['fats'],
                     "caloriesSpent": 0  # Set to 0 as requested
-                })
+                }
+                response["last_7_days"].append(day_response)
+
+                # DEBUG: Log each day's data
+                logger.info(f"🔍 DEBUG: Day {i+1} ({day_data['date']}): calories={day_data['calories']}, protein={day_data['protein']}, carbs={day_data['carbs']}, fats={day_data['fats']}")
+
+            # DEBUG: Log the final response being sent to frontend
+            logger.info(f"🔍 DEBUG: Final API response being sent to frontend:")
+            logger.info(f"🔍 DEBUG: - user_id: {response['user_id']}")
+            logger.info(f"🔍 DEBUG: - daily_targets: {response['daily_targets']}")
+            logger.info(f"🔍 DEBUG: - last_7_days count: {len(response['last_7_days'])}")
+            for i, day in enumerate(response['last_7_days']):
+                logger.info(f"🔍 DEBUG: - Day {i+1}: {day}")
 
             logger.info(f"📈 Historical API response: {len(response['last_7_days'])} days of data")
             self.send_json_response(response)
