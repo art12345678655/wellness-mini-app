@@ -165,9 +165,10 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
         historical_data = []
         today = datetime.datetime.now(datetime.timezone.utc).date()
 
-        # Check if we have ANY real nutrition data for this user
+        # Get nutrition data for each day and check data quality
         total_real_calories = 0
-        real_data_available = False
+        days_with_data = 0
+        historical_data = []
 
         for i in range(days):
             target_date = today - datetime.timedelta(days=days - 1 - i)  # Start from N days ago
@@ -178,9 +179,9 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
             carbs_consumed = float(day_nutrition.get('total_carbs_g', 0))
             fats_consumed = float(day_nutrition.get('total_fat_g', 0))
 
-            # Track if we have real data
+            # Track real data statistics
             if calories_consumed > 0:
-                real_data_available = True
+                days_with_data += 1
             total_real_calories += calories_consumed
 
             historical_data.append({
@@ -193,9 +194,15 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
 
             logger.info(f"📊 {target_date}: {calories_consumed} calories consumed from nutrition logs")
 
-        # If no real data exists, populate sample data in daily_nutrition_summary table for testing
-        if not real_data_available or total_real_calories == 0:
-            logger.warn(f"🚨 No real nutrition data found for user {user_id}. Populating daily_nutrition_summary with SAMPLE data for testing.")
+        # Determine data quality: need at least 3 days with data OR average > 500 calories/day
+        average_calories = total_real_calories / days if days > 0 else 0
+        sufficient_real_data = days_with_data >= 3 or average_calories > 500
+
+        logger.info(f"📊 Data quality check: {days_with_data}/{days} days with data, {total_real_calories} total calories, {average_calories:.0f} avg/day")
+
+        # If insufficient real data, populate sample data for better visualization
+        if not sufficient_real_data:
+            logger.warn(f"🚨 Insufficient nutrition data for user {user_id} ({days_with_data}/{days} days). Populating daily_nutrition_summary with SAMPLE data for testing.")
 
             # Populate sample data in the daily table (this will persist for future requests)
             await supabase_client.populate_sample_daily_data(user_telegram_id, days)
@@ -217,7 +224,7 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
 
             logger.info(f"📊 Using SAMPLE data from daily_nutrition_summary table: {[day['calories'] for day in historical_data]}")
         else:
-            logger.info(f"✅ Using REAL nutrition data from daily_nutrition_summary: total {total_real_calories} calories across {days} days")
+            logger.info(f"✅ Using REAL nutrition data: {days_with_data}/{days} days with data, {total_real_calories} total calories, {average_calories:.0f} avg/day")
 
         logger.info(f"✅ Successfully retrieved {days} days of historical data")
         return {
