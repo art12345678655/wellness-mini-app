@@ -817,21 +817,28 @@
                 console.log('Data loaded and stable - cyan line uses REAL data only');
             }
 
-            // Validate cyan line uses real data
+            // Validate cyan line data source and quality
             validateCyanLineData() {
-                const hasRealData = CALORIES_CONSUMED.length > 0 && CALORIES_CONSUMED.some(cal => cal > 0);
+                const hasData = CALORIES_CONSUMED.length > 0 && CALORIES_CONSUMED.some(cal => cal > 0);
+                const hasSampleData = ANALYTICS_DATA.last7Days && ANALYTICS_DATA.last7Days.some(day => day._sample_data);
 
-                if (hasRealData) {
-                    console.log('✅ CYAN LINE: Using REAL consumption data:', CALORIES_CONSUMED);
+                if (hasData) {
+                    if (hasSampleData) {
+                        console.log('🧪 CYAN LINE: Using SAMPLE data for testing (no real data found):', CALORIES_CONSUMED);
+                        console.log('💡 To see real data: Log meals using the Telegram bot first!');
+                    } else {
+                        console.log('✅ CYAN LINE: Using REAL consumption data:', CALORIES_CONSUMED);
+                    }
                 } else {
-                    console.warn('⚠️ CYAN LINE: No real consumption data available - showing empty line');
+                    console.warn('⚠️ CYAN LINE: No consumption data available - showing empty line');
                 }
 
                 console.log('🎯 CYAN LINE STATUS:', {
                     dataLength: CALORIES_CONSUMED.length,
                     totalCalories: CALORIES_CONSUMED.reduce((a, b) => a + b, 0),
                     dailyValues: CALORIES_CONSUMED,
-                    isRealData: hasRealData
+                    dataType: hasSampleData ? 'SAMPLE' : (hasData ? 'REAL' : 'NONE'),
+                    note: hasSampleData ? 'Log meals in bot to see real data' : ''
                 });
             }
 
@@ -906,23 +913,35 @@
                             console.log('📊 Historical API Response:', historicalData);
 
                             if (historicalData.daily_targets && historicalData.last_7_days) {
-                                // Update analytics data with REAL historical data
+                                // Check if this is sample data
+                                const hasSampleData = historicalData.last_7_days.some(day => day._sample_data);
+
+                                // Update analytics data
                                 ANALYTICS_DATA = {
                                     dailyNorm: historicalData.daily_targets.calories,
                                     last7Days: historicalData.last_7_days
                                 };
 
-                                // Update chart arrays with REAL consumption data
+                                // Update chart arrays
                                 DAILY_NORM = ANALYTICS_DATA.dailyNorm;
                                 CALORIES_CONSUMED = ANALYTICS_DATA.last7Days.map(day => day.calories || 0);
                                 CALORIES_SPENT = ANALYTICS_DATA.last7Days.map(day => 0);
                                 CALORIES_DIFFERENCE = CALORIES_CONSUMED.map(consumed => consumed);
 
-                                console.log('✅ SUCCESS: Using REAL historical data for cyan line:', {
-                                    DAILY_NORM,
-                                    CALORIES_CONSUMED,
-                                    message: `Cyan dots will show real consumption: [${CALORIES_CONSUMED.join(', ')}] calories`
-                                });
+                                if (hasSampleData) {
+                                    console.log('🧪 CYAN LINE: Using SAMPLE data for testing (no real nutrition data found):', {
+                                        DAILY_NORM,
+                                        CALORIES_CONSUMED,
+                                        message: `Cyan dots show SAMPLE consumption: [${CALORIES_CONSUMED.join(', ')}] calories`,
+                                        note: 'To see real data: log meals in the Telegram bot first'
+                                    });
+                                } else {
+                                    console.log('✅ CYAN LINE: Using REAL historical data:', {
+                                        DAILY_NORM,
+                                        CALORIES_CONSUMED,
+                                        message: `Cyan dots show REAL consumption: [${CALORIES_CONSUMED.join(', ')}] calories`
+                                    });
+                                }
                             } else {
                                 console.warn('⚠️ Historical data invalid, keeping today\'s data with variations');
                             }
