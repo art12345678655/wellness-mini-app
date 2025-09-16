@@ -817,28 +817,25 @@
                 console.log('Data loaded and stable - cyan line uses REAL data only');
             }
 
-            // Validate cyan line data source and quality
+            // Validate cyan line shows real database data only
             validateCyanLineData() {
                 const hasData = CALORIES_CONSUMED.length > 0 && CALORIES_CONSUMED.some(cal => cal > 0);
-                const hasSampleData = ANALYTICS_DATA.last7Days && ANALYTICS_DATA.last7Days.some(day => day._sample_data);
+                const daysWithData = CALORIES_CONSUMED.filter(cal => cal > 0).length;
+                const totalDays = CALORIES_CONSUMED.length;
 
                 if (hasData) {
-                    if (hasSampleData) {
-                        console.log('🧪 CYAN LINE: Using SAMPLE data for testing (no real data found):', CALORIES_CONSUMED);
-                        console.log('💡 To see real data: Log meals using the Telegram bot first!');
-                    } else {
-                        console.log('✅ CYAN LINE: Using REAL consumption data:', CALORIES_CONSUMED);
-                    }
+                    console.log('✅ CYAN LINE: Using REAL database consumption data:', CALORIES_CONSUMED);
+                    console.log(`📊 Data coverage: ${daysWithData}/${totalDays} days have logged meals`);
                 } else {
-                    console.warn('⚠️ CYAN LINE: No consumption data available - showing empty line');
+                    console.log('📊 CYAN LINE: No meals logged yet - showing zero consumption (real data)');
                 }
 
                 console.log('🎯 CYAN LINE STATUS:', {
                     dataLength: CALORIES_CONSUMED.length,
                     totalCalories: CALORIES_CONSUMED.reduce((a, b) => a + b, 0),
                     dailyValues: CALORIES_CONSUMED,
-                    dataType: hasSampleData ? 'SAMPLE' : (hasData ? 'REAL' : 'NONE'),
-                    note: hasSampleData ? 'Log meals in bot to see real data' : ''
+                    daysWithData: daysWithData,
+                    dataType: 'REAL_DATABASE_ONLY'
                 });
             }
 
@@ -913,37 +910,25 @@
                             console.log('📊 Historical API Response:', historicalData);
 
                             if (historicalData.daily_targets && historicalData.last_7_days) {
-                                // Check if this is sample data
-                                const hasSampleData = historicalData.last_7_days.some(day => day._sample_data);
-
-                                // Update analytics data
+                                // Update analytics data with REAL data from database only
                                 ANALYTICS_DATA = {
                                     dailyNorm: historicalData.daily_targets.calories,
                                     last7Days: historicalData.last_7_days
                                 };
 
-                                // Update chart arrays
+                                // Update chart arrays with REAL consumption data only
                                 DAILY_NORM = ANALYTICS_DATA.dailyNorm;
                                 CALORIES_CONSUMED = ANALYTICS_DATA.last7Days.map(day => day.calories || 0);
                                 CALORIES_SPENT = ANALYTICS_DATA.last7Days.map(day => 0);
                                 CALORIES_DIFFERENCE = CALORIES_CONSUMED.map(consumed => consumed);
 
-                                if (hasSampleData) {
-                                    console.log('🧪 CYAN LINE: Using SAMPLE data for testing (no real nutrition data found):', {
-                                        DAILY_NORM,
-                                        CALORIES_CONSUMED,
-                                        message: `Cyan dots show SAMPLE consumption: [${CALORIES_CONSUMED.join(', ')}] calories`,
-                                        note: 'To see real data: log meals in the Telegram bot first'
-                                    });
-                                } else {
-                                    console.log('✅ CYAN LINE: Using REAL historical data:', {
-                                        DAILY_NORM,
-                                        CALORIES_CONSUMED,
-                                        message: `Cyan dots show REAL consumption: [${CALORIES_CONSUMED.join(', ')}] calories`
-                                    });
-                                }
+                                console.log('✅ CYAN LINE: Using REAL database data only:', {
+                                    DAILY_NORM,
+                                    CALORIES_CONSUMED,
+                                    message: `Cyan dots show REAL user consumption: [${CALORIES_CONSUMED.join(', ')}] calories from database`
+                                });
                             } else {
-                                console.warn('⚠️ Historical data invalid, keeping today\'s data with variations');
+                                console.warn('⚠️ Historical data invalid, using empty data');
                             }
                         } else {
                             console.warn('⚠️ Historical API failed, keeping today\'s data with variations');
@@ -963,13 +948,13 @@
                 } catch (error) {
                     console.error('❌ CRITICAL: All data loading failed:', error);
 
-                    // Show EMPTY cyan line instead of fake data
-                    console.warn('🚨 NO REAL DATA AVAILABLE - Cyan line will show empty');
+                    // Initialize with empty real data structure
+                    console.warn('🚨 API FAILED - Showing empty real data structure');
                     ANALYTICS_DATA = {
                         dailyNorm: 2500, // Default target
                         last7Days: Array(7).fill().map((_, index) => ({
                             date: '',
-                            calories: 0,  // Show 0 calories = EMPTY cyan line
+                            calories: 0,  // Real zero consumption = empty cyan line
                             protein: 0,
                             carbs: 0,
                             fats: 0,
@@ -982,12 +967,12 @@
                     CALORIES_SPENT = ANALYTICS_DATA.last7Days.map(day => 0);
                     CALORIES_DIFFERENCE = CALORIES_CONSUMED.map(consumed => consumed);
 
-                    console.warn('🎯 CYAN LINE: No real data - showing empty line at bottom of chart');
+                    console.warn('🎯 CYAN LINE: API failed - showing empty data (no fake/sample data)');
 
                     setTimeout(() => {
                         updateNutritionRings();
                         plotLines();
-                        console.log('✅ Charts updated - cyan line empty due to no real data');
+                        console.log('✅ Charts updated with empty real data due to API failure');
                     }, 100);
                 }
             }

@@ -165,7 +165,7 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
         historical_data = []
         today = datetime.datetime.now(datetime.timezone.utc).date()
 
-        # Get nutrition data for each day and check data quality
+        # Get REAL nutrition data for each day from database only
         total_real_calories = 0
         days_with_data = 0
         historical_data = []
@@ -192,39 +192,11 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
                 'fats': fats_consumed
             })
 
-            logger.info(f"📊 {target_date}: {calories_consumed} calories consumed from nutrition logs")
+            logger.info(f"📊 {target_date}: {calories_consumed} calories consumed from database")
 
-        # Determine data quality: need at least 3 days with data OR average > 500 calories/day
+        # Always return real data from database (no sample data substitution)
         average_calories = total_real_calories / days if days > 0 else 0
-        sufficient_real_data = days_with_data >= 3 or average_calories > 500
-
-        logger.info(f"📊 Data quality check: {days_with_data}/{days} days with data, {total_real_calories} total calories, {average_calories:.0f} avg/day")
-
-        # If insufficient real data, populate sample data for better visualization
-        if not sufficient_real_data:
-            logger.warn(f"🚨 Insufficient nutrition data for user {user_id} ({days_with_data}/{days} days). Populating daily_nutrition_summary with SAMPLE data for testing.")
-
-            # Populate sample data in the daily table (this will persist for future requests)
-            await supabase_client.populate_sample_daily_data(user_telegram_id, days)
-
-            # Now re-fetch the data from the daily table
-            historical_data = []
-            for i in range(days):
-                target_date = today - datetime.timedelta(days=days - 1 - i)
-                day_nutrition = await supabase_client.get_nutrition_summary_for_date(user_telegram_id, target_date)
-
-                historical_data.append({
-                    'date': target_date.isoformat(),
-                    'calories': day_nutrition.get('total_calories', 0),
-                    'protein': day_nutrition.get('total_protein_g', 0),
-                    'carbs': day_nutrition.get('total_carbs_g', 0),
-                    'fats': day_nutrition.get('total_fat_g', 0),
-                    '_sample_data': True  # Flag to indicate this is sample data
-                })
-
-            logger.info(f"📊 Using SAMPLE data from daily_nutrition_summary table: {[day['calories'] for day in historical_data]}")
-        else:
-            logger.info(f"✅ Using REAL nutrition data: {days_with_data}/{days} days with data, {total_real_calories} total calories, {average_calories:.0f} avg/day")
+        logger.info(f"✅ REAL DATA ONLY: {days_with_data}/{days} days with data, {total_real_calories} total calories, {average_calories:.0f} avg/day")
 
         logger.info(f"✅ Successfully retrieved {days} days of historical data")
         return {
