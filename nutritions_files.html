@@ -919,6 +919,7 @@
 
                                 // Set global variables with REAL data
                                 DAILY_NORM = forceData.daily_targets.calories;
+                                window.dailyTargetsFromAPI = forceData.daily_targets; // Store targets for rings
                                 ANALYTICS_DATA = {
                                     dailyNorm: forceData.daily_targets.calories,
                                     last7Days: forceData.last_7_days
@@ -1564,23 +1565,35 @@
         function updateNutritionRings() {
             const dayColumns = document.querySelectorAll('.day-column');
 
+            console.log('🔧 Updating nutrition rings with REAL data from API');
+            console.log('📊 ANALYTICS_DATA.last7Days:', ANALYTICS_DATA.last7Days);
+
             dayColumns.forEach((column, index) => {
                 if (index < ANALYTICS_DATA.last7Days.length) {
                     const dayData = ANALYTICS_DATA.last7Days[index];
 
-                    // Get user's daily goals (use current user profile or defaults)
-                    const goals = nutritionTracker ? nutritionTracker.userProfile.goals : {
-                        protein: 200,
-                        carbs: 300,
-                        fats: 80
+                    // Use REAL daily targets from API response
+                    const goals = {
+                        protein: DAILY_NORM ? (DAILY_NORM * 0.15 / 4) : 160, // 15% of calories from protein (4 cal/g)
+                        carbs: DAILY_NORM ? (DAILY_NORM * 0.45 / 4) : 297,   // 45% of calories from carbs (4 cal/g)
+                        fats: DAILY_NORM ? (DAILY_NORM * 0.30 / 9) : 68      // 30% of calories from fats (9 cal/g)
                     };
 
-                    // Calculate progress percentages
-                    const proteinProgress = Math.min(1, dayData.protein / goals.protein);
-                    const carbsProgress = Math.min(1, dayData.carbs / goals.carbs);
-                    const fatsProgress = Math.min(1, dayData.fats / goals.fats);
+                    // If we have the actual targets from API response, use those instead
+                    if (window.dailyTargetsFromAPI) {
+                        goals.protein = window.dailyTargetsFromAPI.protein || goals.protein;
+                        goals.carbs = window.dailyTargetsFromAPI.carbs || goals.carbs;
+                        goals.fats = window.dailyTargetsFromAPI.fats || goals.fats;
+                    }
 
-                    // Update the ring progress values
+                    console.log(`🎯 Day ${index + 1} (${dayData.date}): consumed=${dayData.protein}g protein, ${dayData.carbs}g carbs, ${dayData.fats}g fats | targets=${goals.protein}g, ${goals.carbs}g, ${goals.fats}g`);
+
+                    // Calculate progress percentages with REAL consumption data
+                    const proteinProgress = Math.min(1, (dayData.protein || 0) / goals.protein);
+                    const carbsProgress = Math.min(1, (dayData.carbs || 0) / goals.carbs);
+                    const fatsProgress = Math.min(1, (dayData.fats || 0) / goals.fats);
+
+                    // Update the ring progress values with REAL data
                     const proteinRing = column.querySelector('.ring-protein');
                     const carbsRing = column.querySelector('.ring-carbs');
                     const fatsRing = column.querySelector('.ring-fats');
@@ -1589,18 +1602,21 @@
                         const circumference = 2 * Math.PI * proteinRing.r.baseVal.value;
                         const dashArray = proteinProgress * circumference;
                         proteinRing.style.strokeDasharray = `${dashArray} ${circumference}`;
+                        console.log(`🟦 Day ${index + 1} Protein ring: ${(proteinProgress * 100).toFixed(1)}% (${dayData.protein}g / ${goals.protein}g)`);
                     }
 
                     if (carbsRing) {
                         const circumference = 2 * Math.PI * carbsRing.r.baseVal.value;
                         const dashArray = carbsProgress * circumference;
                         carbsRing.style.strokeDasharray = `${dashArray} ${circumference}`;
+                        console.log(`🟢 Day ${index + 1} Carbs ring: ${(carbsProgress * 100).toFixed(1)}% (${dayData.carbs}g / ${goals.carbs}g)`);
                     }
 
                     if (fatsRing) {
                         const circumference = 2 * Math.PI * fatsRing.r.baseVal.value;
                         const dashArray = fatsProgress * circumference;
                         fatsRing.style.strokeDasharray = `${dashArray} ${circumference}`;
+                        console.log(`🟡 Day ${index + 1} Fats ring: ${(fatsProgress * 100).toFixed(1)}% (${dayData.fats}g / ${goals.fats}g)`);
                     }
                 }
             });
