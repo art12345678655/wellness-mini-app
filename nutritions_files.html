@@ -892,6 +892,44 @@
 
                     console.log('🔥 PRIORITY: Loading TODAY\'S REAL DATA first for user:', userId);
 
+                    // FORCE HISTORICAL API CALL FOR DEBUGGING
+                    console.log('🔍 FORCING historical API call for debugging...');
+                    try {
+                        const forceHistoricalUrl = `/api/historical-data?user_id=${userId}&days=7`;
+                        console.log('🚀 FORCED historical API call to:', forceHistoricalUrl);
+
+                        const forceResponse = await fetch(forceHistoricalUrl);
+                        console.log('🚀 FORCED historical API response status:', forceResponse.status);
+
+                        if (forceResponse.ok) {
+                            const forceData = await forceResponse.json();
+                            console.log('🚀 FORCED historical API data:', forceData);
+
+                            // IMMEDIATELY UPDATE CYAN LINE WITH FORCED DATA
+                            if (forceData.daily_targets && forceData.last_7_days) {
+                                ANALYTICS_DATA = {
+                                    dailyNorm: forceData.daily_targets.calories,
+                                    last7Days: forceData.last_7_days
+                                };
+
+                                DAILY_NORM = ANALYTICS_DATA.dailyNorm;
+                                CALORIES_CONSUMED = ANALYTICS_DATA.last7Days.map(day => day.calories || 0);
+                                CALORIES_SPENT = ANALYTICS_DATA.last7Days.map(day => 0);
+                                CALORIES_DIFFERENCE = CALORIES_CONSUMED.map(consumed => consumed);
+
+                                console.log('🚀 FORCED CYAN LINE UPDATE:', {
+                                    DAILY_NORM,
+                                    CALORIES_CONSUMED,
+                                    message: `FORCED cyan line: [${CALORIES_CONSUMED.join(', ')}] calories`
+                                });
+                            }
+                        } else {
+                            console.error('🚀 FORCED historical API failed:', forceResponse.status, forceResponse.statusText);
+                        }
+                    } catch (forceError) {
+                        console.error('🚀 FORCED historical API error:', forceError);
+                    }
+
                     // ALWAYS try today's real data first since you have 3984.8 calories
                     await this.loadTodaysDataAsFallback(userId);
 
