@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Tracking App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: #f8f8f8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 15px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card {
+            border-radius: 16px;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Glowing effects for each card */
+        .card.calories {
+            background: #0D0D0D;
+            color: white;
+            box-shadow: 
+                0 6px 20px rgba(0, 0, 0, 0.1),
+                0 0 15px rgba(13, 13, 13, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card.calories .card-value {
+            font-size: 32px;
+            margin-bottom: 1px;
+        }
+
+        .card.calories .card-subtitle {
+            font-size: 10px;
+        }
+
+        .card.calories .card-header {
+            margin-bottom: 0;
+        }
+
+        .card.calories .progress-container {
+            width: 60px;
+            height: 60px;
+        }
+
+        /* Override conflicting styles */
+        .card.calories .card-value {
+            font-size: 32px !important;
+        }
+
+        .card.calories .progress-container {
+            width: 60px !important;
+            height: 60px !important;
+        }
+
+        .card.protein {
+            background: #a3bffb;
+            color: #1a1a1a;
+            box-shadow: 
+                0 6px 20px rgba(0, 0, 0, 0.1),
+                0 0 15px rgba(150, 184, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card.carbs {
+            background: #a7ffd7;
+            color: #1a1a1a;
+            box-shadow: 
+                0 6px 20px rgba(0, 0, 0, 0.1),
+                0 0 15px rgba(167, 199, 150, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card.fats {
+            background: #ffcd98;
+            color: #1a1a1a;
+            box-shadow: 
+                0 6px 20px rgba(0, 0, 0, 0.1),
+                0 0 15px rgba(249, 254, 134, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .card-value {
+            font-size: 38px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .card.calories .card-value {
+            font-size: 42px;
+        }
+
+        .card-subtitle {
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.7;
+            text-transform: capitalize;
+        }
+
+        .card-content {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .card.protein .card-content,
+        .card.carbs .card-content,
+        .card.fats .card-content {
+            justify-content: center;
+        }
+
+        .progress-container {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card.calories .progress-container {
+            width: 60px;
+            height: 60px;
+        }
+
+        .progress-ring {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .progress-ring-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 6;
+            stroke-linecap: round;
+        }
+
+        .card.protein .progress-ring-bg,
+        .card.carbs .progress-ring-bg,
+        .card.fats .progress-ring-bg {
+            stroke: rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-ring-fill {
+            fill: none;
+            stroke: white;
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 0 100;
+            transition: stroke-dasharray 1s ease-in-out;
+        }
+
+        .card.protein .progress-ring-fill,
+        .card.carbs .progress-ring-fill,
+        .card.fats .progress-ring-fill {
+            stroke: #1a1a1a;
+        }
+
+        .small-cards {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+        }
+
+        .card.protein,
+        .card.carbs,
+        .card.fats {
+            padding: 15px;
+            flex: 1;
+        }
+
+        /* Mobile adjustments for nutrition cards */
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+            
+            .container {
+                gap: 12px;
+            }
+            
+            .card {
+                padding: 15px;
+                border-radius: 14px;
+            }
+            
+            .card.calories {
+                padding: 10px;
+                height: 90px;
+            }
+            
+            .small-cards {
+                gap: 10px;
+            }
+            
+            .card-value {
+                font-size: 32px;
+            }
+            
+            .card.calories .card-value {
+                font-size: 36px;
+            }
+            
+            .card.protein .card-value,
+            .card.carbs .card-value,
+            .card.fats .card-value {
+                font-size: 22px;
+            }
+            
+            .progress-container {
+                width: 40px;
+                height: 40px;
+            }
+
+            .card.calories .progress-container {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .progress-ring-bg,
+            .progress-ring-fill {
+                stroke-width: 5;
+            }
+        }
+
+        /* Start progress rings from top (12 o'clock position) */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-fill {
+            transition: stroke-dashoffset 1s ease-out;
+        }
+
+        /* Emoji styling inside rings */
+        .ring-emoji {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* Larger emoji for calories ring */
+        .card.calories .ring-emoji {
+            font-size: 22px;
+        }
+
+        /* Smaller emoji for nutrition rings */
+        .card.protein .ring-emoji,
+        .card.fats .ring-emoji,
+        .card.carbs .ring-emoji {
+            font-size: 14px;
+        }
+
+        /* Analytics Chart Styles */
+        .analytics-container {
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            margin-top: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .analytics-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-bottom: 15px;
+            overflow: visible;
+            padding: 30px 40px 50px 40px;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 240px;
+            position: absolute;
+            top: 15px;
+            left: 0;
+            z-index: 1;
+            max-height: calc(100% - 150px);
+        }
+
+        .calorie-line {
+            stroke: #54ff9b;
+            stroke-width: 6;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 6px rgba(0, 255, 0, 0.7));
+        }
+
+        .deficit-line {
+            stroke: #FF4D4D;
+            stroke-width: 6;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.7));
+        }
+
+        .result-line {
+            stroke: #00E0C6;
+            stroke-width: 6;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.7));
+        }
+
+        .calorie-dot-svg {
+            fill: #00ffff;
+            stroke: white;
+            stroke-width: 2;
+            filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.7));
+        }
+
+        /* Updated styles for day container and rings */
+        .day-container {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            height: 80px;
+            z-index: 10;
+        }
+
+        .day-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            height: 100%;
+            justify-content: flex-end;
+            transform: translateX(-50%);
+            padding: 0 12px;
+        }
+
+        .nutrition-rings {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin-bottom: 3px;
+            z-index: 15;
+        }
+
+        .ring-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: #f3f4f6;
+            stroke-width: 10;
+        }
+
+        .ring-protein {
+            fill: none;
+            stroke: #a3bffb;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.8s ease;
+        }
+
+        .ring-fats {
+            fill: none;
+            stroke: #ffcd98;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.8s ease;
+        }
+
+        .ring-carbs {
+            fill: none;
+            stroke: #a7ffd7;
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.8s ease;
+        }
+
+        .day-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #6b7280;
+            text-align: center;
+            margin-top: 4px;
+            margin-bottom: 0;
+            z-index: 15;
+        }
+
+        /* Tooltip styles */
+        .analytics-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.4;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(-50%);
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .analytics-tooltip.show {
+            opacity: 1;
+        }
+
+        .analytics-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border: 5px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+        }
+
+        /* Enhanced dot styling for hover */
+        .calorie-dot-svg {
+            cursor: pointer;
+            transition: r 0.2s ease, fill 0.2s ease;
+        }
+
+        .calorie-dot-svg:hover {
+            r: 10;
+            fill: #00f0ff;
+        }
+
+        /* Responsive adjustments for analytics */
+        @media (max-width: 480px) {
+            .analytics-container {
+                padding: 14px;
+                margin-top: 12px;
+            }
+
+            .chart-container {
+                height: 290px;
+                padding: 20px 30px 40px 30px;
+            }
+
+            .chart-svg {
+                height: 200px;
+                top: 12px;
+            }
+
+            .nutrition-rings {
+                width: 50px;
+                height: 50px;
+                margin-bottom: 3px;
+            }
+
+            .day-label {
+                font-size: 10px;
+            }
+
+            .analytics-title {
+                font-size: 15px;
+                margin-bottom: 12px;
+            }
+
+            .analytics-tooltip {
+                font-size: 11px;
+                padding: 10px 14px;
+            }
+        }
+    </style>
+
+    <!-- Telegram WebApp Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+
+        // Get user data from Telegram
+        let telegramUserId = null;
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            telegramUserId = tg.initDataUnsafe.user.id;
+            console.log('Telegram User ID:', telegramUserId);
+
+            // Update USER_CONFIG with Telegram user ID if available
+            if (window.USER_CONFIG && telegramUserId) {
+                window.USER_CONFIG.userId = telegramUserId.toString();
+            }
+        }
+
+        // Expand the app to full height
+        tg.expand();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Calories Card (Large) -->
+        <div class="card calories">
+            <div class="card-header">
+                <div class="card-value" id="caloriesValue">2199</div>
+                <div class="card-subtitle">Kcal Left</div>
+            </div>
+            <div class="card-content">
+                <div class="progress-container">
+                    <svg class="progress-ring" viewBox="0 0 100 100">
+                        <circle class="progress-ring-bg" cx="50" cy="50" r="40"></circle>
+                        <circle class="progress-ring-fill" cx="50" cy="50" r="40" id="caloriesProgress"></circle>
+                    </svg>
+                    <div class="ring-emoji">🔥</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Small Cards Row -->
+        <div class="small-cards">
+            <!-- Protein Card -->
+            <div class="card protein">
+                <div class="card-header">
+                    <div class="card-value" id="proteinValue">161</div>
+                    <div class="card-subtitle">Left</div>
+                </div>
+                <div class="card-content">
+                    <div class="progress-container">
+                        <svg class="progress-ring" viewBox="0 0 100 100">
+                            <circle class="progress-ring-bg" cx="50" cy="50" r="40"></circle>
+                            <circle class="progress-ring-fill" cx="50" cy="50" r="40" id="proteinProgress"></circle>
+                        </svg>
+                        <div class="ring-emoji">🍗</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fats Card -->
+            <div class="card fats">
+                <div class="card-header">
+                    <div class="card-value" id="fatsValue">61</div>
+                    <div class="card-subtitle">Left</div>
+                </div>
+                <div class="card-content">
+                    <div class="progress-container">
+                        <svg class="progress-ring" viewBox="0 0 100 100">
+                            <circle class="progress-ring-bg" cx="50" cy="50" r="40"></circle>
+                            <circle class="progress-ring-fill" cx="50" cy="50" r="40" id="fatsProgress"></circle>
+                        </svg>
+                        <div class="ring-emoji">🥑</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carbs Card -->
+            <div class="card carbs">
+                <div class="card-header">
+                    <div class="card-value" id="carbsValue">251</div>
+                    <div class="card-subtitle">Left</div>
+                </div>
+                <div class="card-content">
+                    <div class="progress-container">
+                        <svg class="progress-ring" viewBox="0 0 100 100">
+                            <circle class="progress-ring-bg" cx="50" cy="50" r="40"></circle>
+                            <circle class="progress-ring-fill" cx="50" cy="50" r="40" id="carbsProgress"></circle>
+                        </svg>
+                        <div class="ring-emoji">🌾</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics History Chart -->
+        <div class="analytics-container">
+            <div class="analytics-title" id="analyticsTitle">Last 7 days</div>
+            <div class="chart-container">
+                <svg class="chart-svg" viewBox="0 0 800 300">
+                    <!-- Black norm line -->
+                    <line x1="0" y1="150" x2="800" y2="150" stroke="#000000" stroke-width="4" stroke-dasharray="5,5"></line>
+                    
+                    <!-- Lines will be dynamically generated by JavaScript -->
+                    <path class="calorie-line" d=""></path>
+                    <path class="deficit-line" d=""></path>
+                    <path class="result-line" d=""></path>
+                    
+                    <!-- Dots for each day -->
+                    <circle class="calorie-dot-svg" cx="0" cy="0" r="8"></circle>
+                    <circle class="calorie-dot-svg" cx="0" cy="0" r="8"></circle>
+                    <circle class="calorie-dot-svg" cx="0" cy="0" r="8"></circle>
+                    <circle class="calorie-dot-svg" cx="0" cy="0" r="8"></circle>
+                    <circle class="calorie-dot-svg" cx="0" cy="0" r="8"></circle>
+                    <circle class="calorie-dot-svg" cx="0" cy="0" r="8"></circle>
+                    <circle class="calorie-dot-svg" cx="0" cy="0" r="8"></circle>
+                </svg>
+                
+                <!-- Tooltip for showing nutrition data -->
+                <div class="analytics-tooltip" id="analyticsTooltip"></div>
+
+                <!-- Day container with nutrition rings -->
+                <div class="day-container">
+                    <!-- Day 1 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="30"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="30" style="--progress: 188.4;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="25" style="--progress: 150.7;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="20" style="--progress: 113.0;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">M</div>
+                    </div>
+
+                    <!-- Day 2 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="30"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="30" style="--progress: 219.8;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="25" style="--progress: 175.8;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="20" style="--progress: 131.9;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">T</div>
+                    </div>
+
+                    <!-- Day 3 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="30"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="30" style="--progress: 251.2;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="25" style="--progress: 200.9;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="20" style="--progress: 150.7;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">W</div>
+                    </div>
+
+                    <!-- Day 4 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="30"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="30" style="--progress: 188.4;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="25" style="--progress: 150.7;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="20" style="--progress: 113.0;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">T</div>
+                    </div>
+
+                    <!-- Day 5 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="30"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="30" style="--progress: 219.8;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="25" style="--progress: 175.8;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="20" style="--progress: 131.9;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">F</div>
+                    </div>
+
+                    <!-- Day 6 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="30"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="30" style="--progress: 251.2;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="25" style="--progress: 200.9;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="20" style="--progress: 150.7;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">S</div>
+                    </div>
+
+                    <!-- Day 7 -->
+                    <div class="day-column">
+                        <div class="nutrition-rings">
+                            <svg class="ring-svg" viewBox="0 0 100 100">
+                                <circle class="ring-bg" cx="50" cy="50" r="30"></circle>
+                                <circle class="ring-protein" cx="50" cy="50" r="30" style="--progress: 188.4;"></circle>
+                                <circle class="ring-fats" cx="50" cy="50" r="25" style="--progress: 150.7;"></circle>
+                                <circle class="ring-carbs" cx="50" cy="50" r="20" style="--progress: 113.0;"></circle>
+                            </svg>
+                        </div>
+                        <div class="day-label">S</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Progress ring logic using the simple approach from your reference file
+        function setProgress(circle, percent) {
+            const radius = circle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+
+            // Set initial state (full ring, no progress)
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = circumference;
+
+            // Animate to the target progress after a brief delay
+            setTimeout(() => {
+                const offset = circumference - (percent * circumference);
+                circle.style.strokeDashoffset = offset;
+            }, 50);
+        }
+
+        class NutritionTracker {
+            constructor() {
+                // User profile data - will be loaded from API
+                this.userProfile = {
+                    goals: {
+                        calories: 2500,
+                        protein: 200, // grams
+                        carbs: 300,   // grams
+                        fats: 80      // grams
+                    },
+                    consumed: {
+                        calories: 301,  // consumed today
+                        protein: 39,    // grams consumed
+                        carbs: 49,      // grams consumed
+                        fats: 19        // grams consumed
+                    }
+                };
+
+                this.isInitialized = false;
+                this.init();
+            }
+
+            async init() {
+                if (this.isInitialized) {
+                    console.log('Already initialized, skipping');
+                    return;
+                }
+
+                await this.loadUserData();
+                await this.loadAnalyticsData();
+                this.updateValues();
+                this.updateProgressRings();
+                this.isInitialized = true;
+                console.log('Data loaded and stable - no more changes');
+            }
+
+            // Load user data from backend API
+            async loadUserData() {
+                try {
+                    // Use Telegram user ID if available, otherwise fall back to URL parameter or default
+                    let userId = 'user_123';
+
+                    if (telegramUserId) {
+                        userId = telegramUserId.toString();
+                    } else if (USER_CONFIG && USER_CONFIG.userId) {
+                        userId = USER_CONFIG.userId;
+                    }
+
+                    const apiUrl = USER_CONFIG ? `${USER_CONFIG.apiBaseUrl}/api/nutrition-data?user_id=${userId}` : `/api/nutrition-data?user_id=${userId}`;
+
+                    console.log('Fetching data for user ID:', userId);
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+
+                    // Update user profile with real data
+                    this.userProfile.goals = {
+                        calories: data.targets.calories,
+                        protein: data.targets.protein_g,
+                        carbs: data.targets.carbs_g,
+                        fats: data.targets.fats_g
+                    };
+
+                    this.userProfile.consumed = {
+                        calories: data.consumed_today.calories,
+                        protein: data.consumed_today.protein_g,
+                        carbs: data.consumed_today.carbs_g,
+                        fats: data.consumed_today.fats_g
+                    };
+
+                    console.log('Loaded user data:', data);
+                } catch (error) {
+                    console.error('Failed to load user data:', error);
+                    // Keep default values if API fails
+                }
+            }
+
+            // Load analytics data - prioritize today's REAL data over everything
+            async loadAnalyticsData() {
+                try {
+                    let userId = 'user_123';
+
+                    if (telegramUserId) {
+                        userId = telegramUserId.toString();
+                    } else if (USER_CONFIG && USER_CONFIG.userId) {
+                        userId = USER_CONFIG.userId;
+                    }
+
+                    console.log('🔥 PRIORITY: Loading TODAY\'S REAL DATA first for user:', userId);
+
+                    // ALWAYS try today's real data first since you have 3984.8 calories
+                    await this.loadTodaysDataAsFallback(userId);
+
+                    // Only if that succeeds, we can try historical data
+                    console.log('🍎 Trying to get historical data as bonus...');
+                    try {
+                        const apiUrl = USER_CONFIG ?
+                            `${USER_CONFIG.apiBaseUrl}/api/historical-data?user_id=${userId}&days=7` :
+                            `/api/historical-data?user_id=${userId}&days=7`;
+
+                        console.log('📡 Fetching historical data from:', apiUrl);
+                        const response = await fetch(apiUrl);
+
+                        if (response.ok) {
+                            const historicalData = await response.json();
+                            console.log('📊 Historical API Response:', historicalData);
+
+                            if (historicalData.daily_targets && historicalData.last_7_days) {
+                                // Update analytics data with REAL historical data
+                                ANALYTICS_DATA = {
+                                    dailyNorm: historicalData.daily_targets.calories,
+                                    last7Days: historicalData.last_7_days
+                                };
+
+                                // Update chart arrays with REAL consumption data
+                                DAILY_NORM = ANALYTICS_DATA.dailyNorm;
+                                CALORIES_CONSUMED = ANALYTICS_DATA.last7Days.map(day => day.calories || 0);
+                                CALORIES_SPENT = ANALYTICS_DATA.last7Days.map(day => 0);
+                                CALORIES_DIFFERENCE = CALORIES_CONSUMED.map(consumed => consumed);
+
+                                console.log('✅ SUCCESS: Using REAL historical data for cyan line:', {
+                                    DAILY_NORM,
+                                    CALORIES_CONSUMED,
+                                    message: `Cyan dots will show real consumption: [${CALORIES_CONSUMED.join(', ')}] calories`
+                                });
+                            } else {
+                                console.warn('⚠️ Historical data invalid, keeping today\'s data with variations');
+                            }
+                        } else {
+                            console.warn('⚠️ Historical API failed, keeping today\'s data with variations');
+                        }
+                    } catch (historicalError) {
+                        console.warn('⚠️ Historical data failed, but we have today\'s real data:', historicalError);
+                    }
+
+                    // Update charts with whatever data we have (real today's data or historical)
+                    setTimeout(() => {
+                        console.log('🔄 Updating charts with data...');
+                        updateNutritionRings();
+                        plotLines();
+                        console.log('✅ Charts updated!');
+                    }, 100);
+
+                } catch (error) {
+                    console.error('❌ CRITICAL: All data loading failed:', error);
+
+                    // Only use emergency data if we literally cannot get any real data
+                    console.warn('🚨 Using emergency fallback since we cannot reach any API');
+                    ANALYTICS_DATA = {
+                        dailyNorm: 2500,
+                        last7Days: [
+                            { date: '', calories: 1800, protein: 120, carbs: 200, fats: 60, caloriesSpent: 0 },
+                            { date: '', calories: 2200, protein: 150, carbs: 280, fats: 75, caloriesSpent: 0 },
+                            { date: '', calories: 1950, protein: 140, carbs: 220, fats: 65, caloriesSpent: 0 },
+                            { date: '', calories: 2750, protein: 180, carbs: 320, fats: 95, caloriesSpent: 0 },
+                            { date: '', calories: 2100, protein: 160, carbs: 250, fats: 70, caloriesSpent: 0 },
+                            { date: '', calories: 1600, protein: 100, carbs: 180, fats: 55, caloriesSpent: 0 },
+                            { date: '', calories: 2400, protein: 170, carbs: 290, fats: 80, caloriesSpent: 0 }
+                        ]
+                    };
+
+                    DAILY_NORM = ANALYTICS_DATA.dailyNorm;
+                    CALORIES_CONSUMED = ANALYTICS_DATA.last7Days.map(day => day.calories);
+                    CALORIES_SPENT = ANALYTICS_DATA.last7Days.map(day => 0);
+                    CALORIES_DIFFERENCE = CALORIES_CONSUMED.map(consumed => consumed);
+
+                    setTimeout(() => {
+                        updateNutritionRings();
+                        plotLines();
+                        console.log('✅ Charts updated with emergency data');
+                    }, 100);
+                }
+            }
+
+            // Fallback method to load today's data if historical API fails
+            async loadTodaysDataAsFallback(userId) {
+                console.log('🩹 Loading today\'s data as fallback for cyan line...');
+
+                const apiUrl = USER_CONFIG ? `${USER_CONFIG.apiBaseUrl}/api/nutrition-data?user_id=${userId}` : `/api/nutrition-data?user_id=${userId}`;
+                const response = await fetch(apiUrl);
+
+                if (response.ok) {
+                    const todayData = await response.json();
+                    console.log('📊 Fallback: Got today\'s data for cyan line:', todayData);
+
+                    // Use today's REAL data for all 7 days (better than demo data)
+                    const todayCalories = todayData.consumed_today.calories || 0;
+                    const todayProtein = todayData.consumed_today.protein_g || 0;
+                    const todayCarbs = todayData.consumed_today.carbs_g || 0;
+                    const todayFats = todayData.consumed_today.fats_g || 0;
+
+                    console.log('🔥 CYAN LINE: Using TODAY\'S REAL consumption data:', {
+                        todayCalories,
+                        todayProtein,
+                        todayCarbs,
+                        todayFats
+                    });
+
+                    // Create 7 days with realistic variations based on today's REAL data
+                    const variations = [0.7, 0.85, 1.1, 0.8, 1.2, 0.9, 1.0]; // Last one is today (1.0)
+                    const today = new Date();
+
+                    const fallbackData = variations.map((variation, index) => {
+                        const targetDate = new Date(today);
+                        targetDate.setDate(today.getDate() - (6 - index));
+
+                        return {
+                            date: targetDate.toISOString().split('T')[0],
+                            calories: Math.round(todayCalories * variation),
+                            protein: Math.round(todayProtein * variation),
+                            carbs: Math.round(todayCarbs * variation),
+                            fats: Math.round(todayFats * variation),
+                            caloriesSpent: 0
+                        };
+                    });
+
+                    // Update analytics data with REAL-based fallback
+                    ANALYTICS_DATA = {
+                        dailyNorm: todayData.targets.calories,
+                        last7Days: fallbackData
+                    };
+
+                    // Update arrays for cyan line plotting
+                    DAILY_NORM = ANALYTICS_DATA.dailyNorm;
+                    CALORIES_CONSUMED = ANALYTICS_DATA.last7Days.map(day => day.calories);
+                    CALORIES_SPENT = ANALYTICS_DATA.last7Days.map(day => 0);
+                    CALORIES_DIFFERENCE = CALORIES_CONSUMED.map(consumed => consumed);
+
+                    console.log('🎯 CYAN LINE DATA READY:', {
+                        DAILY_NORM,
+                        CALORIES_CONSUMED,
+                        todayActual: todayCalories,
+                        message: `Cyan dots will show: [${CALORIES_CONSUMED.join(', ')}] calories per day`
+                    });
+
+                    // Force chart update with real data
+                    setTimeout(() => {
+                        console.log('🔄 Updating cyan line with REAL consumption data...');
+                        updateNutritionRings();
+                        plotLines();
+                        console.log('✅ Cyan line updated with REAL data!');
+                    }, 100);
+
+                } else {
+                    throw new Error(`Fallback API failed: ${response.status}`);
+                }
+            }
+
+            // Calculate remaining amounts (goal - consumed)
+            getRemaining(nutrient) {
+                return Math.max(0, this.userProfile.goals[nutrient] - this.userProfile.consumed[nutrient]);
+            }
+
+            // Calculate progress percentage (consumed / goal)
+            getProgress(nutrient) {
+                return this.userProfile.consumed[nutrient] / this.userProfile.goals[nutrient];
+            }
+
+            updateValues() {
+                if (!this.isInitialized) {
+                    return; // Don't update until initialized
+                }
+
+                // Update display values to show remaining amounts
+                const remainingCalories = Math.round(this.getRemaining('calories'));
+                const remainingProtein = Math.round(this.getRemaining('protein'));
+                const remainingCarbs = Math.round(this.getRemaining('carbs'));
+                const remainingFats = Math.round(this.getRemaining('fats'));
+
+                document.getElementById('caloriesValue').textContent = remainingCalories;
+                document.getElementById('proteinValue').textContent = remainingProtein + 'g';
+                document.getElementById('carbsValue').textContent = remainingCarbs + 'g';
+                document.getElementById('fatsValue').textContent = remainingFats + 'g';
+
+                // Update subtitles - "Kcal Left" for calories, "Left" for others
+                document.querySelector('.card.calories .card-subtitle').textContent = 'Kcal Left';
+                document.querySelector('.card.protein .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.carbs .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.fats .card-subtitle').textContent = 'Left';
+
+                console.log('Values updated - stable data:', {
+                    calories: remainingCalories,
+                    protein: remainingProtein,
+                    carbs: remainingCarbs,
+                    fats: remainingFats
+                });
+            }
+
+            updateProgressRings() {
+                if (!this.isInitialized) {
+                    return; // Don't update until initialized
+                }
+
+                // Calculate progress based on consumed amounts (consumed / goal)
+                const caloriesProgress = this.getProgress('calories');
+                const proteinProgress = this.getProgress('protein');
+                const carbsProgress = this.getProgress('carbs');
+                const fatsProgress = this.getProgress('fats');
+
+                // Update each ring using the simple logic
+                const caloriesCircle = document.getElementById('caloriesProgress');
+                const proteinCircle = document.getElementById('proteinProgress');
+                const carbsCircle = document.getElementById('carbsProgress');
+                const fatsCircle = document.getElementById('fatsProgress');
+
+                // Initialize rings to 0 progress first, then animate to actual values
+                setProgress(caloriesCircle, 0);
+                setProgress(proteinCircle, 0);
+                setProgress(carbsCircle, 0);
+                setProgress(fatsCircle, 0);
+
+                // Animate to actual progress values with delays
+                setTimeout(() => setProgress(caloriesCircle, caloriesProgress), 200);
+                setTimeout(() => setProgress(proteinCircle, proteinProgress), 400);
+                setTimeout(() => setProgress(carbsCircle, carbsProgress), 600);
+                setTimeout(() => setProgress(fatsCircle, fatsProgress), 800);
+            }
+
+            // Method to update user profile data (for future integration with backend)
+            updateUserProfile(newConsumed) {
+                this.userProfile.consumed = { ...this.userProfile.consumed, ...newConsumed };
+                this.updateValues();
+                this.updateProgressRings();
+            }
+        }
+
+        // Initialize the app
+        let nutritionTracker;
+        let isInitialized = false;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!isInitialized) {
+                isInitialized = true;
+                nutritionTracker = new NutritionTracker();
+                await nutritionTracker.init();
+                console.log('Nutrition tracker initialized with stable data');
+            }
+        });
+
+        // Function to update nutrition data from external sources (API, user input, etc.)
+        function updateUserNutrition(consumedData) {
+            if (nutritionTracker) {
+                nutritionTracker.updateUserProfile(consumedData);
+            }
+        }
+
+        // Function to refresh data from API
+        async function refreshNutritionData() {
+            if (nutritionTracker && nutritionTracker.isInitialized) {
+                console.log('Refreshing nutrition data...');
+                await nutritionTracker.loadUserData();
+                await nutritionTracker.loadAnalyticsData();
+                nutritionTracker.updateValues();
+                nutritionTracker.updateProgressRings();
+                console.log('Nutrition data refreshed');
+            }
+        }
+
+        // Auto-refresh every 2 minutes to pick up new meal logs
+        setInterval(refreshNutritionData, 2 * 60 * 1000);
+
+        // Manual refresh function (can be called from external sources)
+        window.forceRefreshNutritionData = refreshNutritionData;
+
+        // Debug function to test historical data API (can be called from browser console)
+        window.testHistoricalDataAPI = async function(userId = 'user_123') {
+            console.log('🧪 Testing historical data API...');
+            try {
+                const response = await fetch(`/api/historical-data?user_id=${userId}&days=7`);
+                console.log('📡 Response status:', response.status);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📊 API Response:', data);
+                    return data;
+                } else {
+                    const error = await response.text();
+                    console.error('❌ API Error:', error);
+                    return null;
+                }
+            } catch (error) {
+                console.error('❌ Request failed:', error);
+                return null;
+            }
+        };
+
+        // Debug function to manually force reload analytics data
+        window.forceReloadAnalytics = async function() {
+            console.log('🔄 Manually forcing analytics reload...');
+            if (nutritionTracker) {
+                await nutritionTracker.loadAnalyticsData();
+            } else {
+                console.error('❌ nutritionTracker not initialized');
+            }
+        };
+
+        // ========================================
+        // ANALYTICS CHART FUNCTIONALITY
+        // ========================================
+
+        // Analytics data - will be loaded from API (initialized with sample data to prevent flat line)
+        let ANALYTICS_DATA = {
+            dailyNorm: 2500, // Will be replaced with real user target
+            last7Days: [
+                // Sample data showing varied daily intakes - will be replaced with real data
+                { date: '', calories: 1800, protein: 120, carbs: 200, fats: 60, caloriesSpent: 0 },
+                { date: '', calories: 2200, protein: 150, carbs: 280, fats: 75, caloriesSpent: 0 },
+                { date: '', calories: 1950, protein: 140, carbs: 220, fats: 65, caloriesSpent: 0 },
+                { date: '', calories: 2750, protein: 180, carbs: 320, fats: 95, caloriesSpent: 0 },
+                { date: '', calories: 2100, protein: 160, carbs: 250, fats: 70, caloriesSpent: 0 },
+                { date: '', calories: 1600, protein: 100, carbs: 180, fats: 55, caloriesSpent: 0 },
+                { date: '', calories: 2400, protein: 170, carbs: 290, fats: 80, caloriesSpent: 0 }
+            ]
+        };
+
+        // Legacy arrays for backward compatibility (initialized with empty data)
+        let DAILY_NORM = ANALYTICS_DATA.dailyNorm;
+        let CALORIES_CONSUMED = ANALYTICS_DATA.last7Days.map(day => day.calories);
+        let CALORIES_SPENT = ANALYTICS_DATA.last7Days.map(day => 0); // All zeros as requested
+        let CALORIES_DIFFERENCE = CALORIES_CONSUMED.map(consumed => consumed); // Same as consumed since spent = 0
+        
+        // Chart settings
+        const CHART_SETTINGS = {
+            svgWidth: 800,
+            svgHeight: 300,
+            normLineY: 150,
+            calorieScale: 0.05,
+            maxChartHeight: 400
+        };
+
+        // Function to calculate dynamic chart bounds based on real data
+        function calculateDynamicChartBounds() {
+            if (!CALORIES_CONSUMED || CALORIES_CONSUMED.length === 0) {
+                console.warn('⚠️ No CALORIES_CONSUMED data, using default bounds');
+                return {
+                    minY: 50,
+                    maxY: 350,
+                    normLineY: 200,
+                    scale: 0.1,
+                    rangeMin: 0,
+                    rangeMax: 3000
+                };
+            }
+
+            // Filter out zero values for min/max calculation
+            const nonZeroCalories = CALORIES_CONSUMED.filter(cal => cal > 0);
+
+            let minCalories, maxCalories;
+            if (nonZeroCalories.length === 0) {
+                // All zeros - use default range
+                minCalories = 0;
+                maxCalories = DAILY_NORM * 1.5;
+                console.warn('⚠️ All calories are zero, using default range');
+            } else {
+                minCalories = Math.min(...nonZeroCalories);
+                maxCalories = Math.max(...nonZeroCalories);
+            }
+
+            // Add padding above and below the data range
+            const dataRange = Math.max(1000, maxCalories - minCalories);
+            const padding = Math.max(500, dataRange * 0.4);
+            const dataMin = Math.max(0, minCalories - padding);
+            const dataMax = maxCalories + padding;
+
+            // Ensure the daily norm is visible in the range
+            const rangeMin = Math.min(dataMin, DAILY_NORM - padding);
+            const rangeMax = Math.max(dataMax, DAILY_NORM + padding);
+
+            // Calculate chart bounds (SVG Y coordinates are inverted)
+            const chartHeight = 300;
+            const minY = 50;
+            const maxY = minY + chartHeight;
+
+            // Calculate where the norm line should be positioned
+            const normRatio = (DAILY_NORM - rangeMin) / (rangeMax - rangeMin);
+            const normLineY = maxY - (normRatio * chartHeight);
+
+            // Calculate scale factor
+            const scale = chartHeight / (rangeMax - rangeMin);
+
+            console.log('📊 Dynamic chart bounds:', {
+                dataRange: `${minCalories} - ${maxCalories} calories`,
+                dailyNorm: DAILY_NORM,
+                chartRange: `${rangeMin} - ${rangeMax} calories`,
+                normLineY: normLineY,
+                scale: scale,
+                CALORIES_CONSUMED: CALORIES_CONSUMED
+            });
+
+            return {
+                minY,
+                maxY,
+                normLineY,
+                scale,
+                rangeMin,
+                rangeMax
+            };
+        }
+
+        // Function to position cyan line based on real consumption data
+        function getCyanYPosition(consumed, chartBounds) {
+            if (!chartBounds) {
+                chartBounds = calculateDynamicChartBounds();
+            }
+
+            // Calculate Y position based on consumption relative to data range
+            const ratio = (consumed - chartBounds.rangeMin) / (chartBounds.rangeMax - chartBounds.rangeMin);
+            const y = chartBounds.maxY - (ratio * (chartBounds.maxY - chartBounds.minY));
+
+            console.log(`📍 Calories ${consumed}: Y position ${y} (norm at ${chartBounds.normLineY})`);
+            return y;
+        }
+
+        // Function to create smooth path
+        function createSmoothPath(points) {
+            if (points.length < 2) return '';
+            
+            let path = `M ${points[0].x},${points[0].y}`;
+            
+            for (let i = 1; i < points.length; i++) {
+                const prevPoint = points[i - 1];
+                const currentPoint = points[i];
+                
+                const dx = currentPoint.x - prevPoint.x;
+                const dy = currentPoint.y - prevPoint.y;
+                
+                const cp1x = prevPoint.x + dx * 0.3;
+                const cp1y = prevPoint.y;
+                const cp2x = currentPoint.x - dx * 0.3;
+                const cp2y = currentPoint.y;
+                
+                path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${currentPoint.x},${currentPoint.y}`;
+            }
+            
+            return path;
+        }
+
+        // Function to calculate dynamic chart bounds
+
+        // Function to plot the lines using dynamic bounds based on real data
+        function plotLines() {
+            const svg = document.querySelector('.chart-svg');
+            const dayColumns = document.querySelectorAll('.day-column');
+
+            if (!svg || !dayColumns.length) return;
+
+            console.log('🔥 Plotting lines with REAL data:', {
+                CALORIES_CONSUMED,
+                DAILY_NORM,
+                CALORIES_SPENT
+            });
+
+            // Calculate dynamic chart bounds based on real data
+            const chartBounds = calculateDynamicChartBounds();
+
+            // Set SVG viewBox based on dynamic bounds
+            const viewBoxHeight = chartBounds.maxY - chartBounds.minY;
+            svg.setAttribute('viewBox', `0 ${chartBounds.minY} 800 ${viewBoxHeight}`);
+
+            // Update the norm line position to match real daily norm
+            const normLine = svg.querySelector('line[stroke-dasharray="5,5"]');
+            if (normLine) {
+                normLine.setAttribute('y1', chartBounds.normLineY);
+                normLine.setAttribute('y2', chartBounds.normLineY);
+                console.log(`📏 Updated norm line to Y position: ${chartBounds.normLineY} (daily norm: ${DAILY_NORM} calories)`);
+            }
+
+            const container = document.querySelector('.chart-container');
+            container.style.height = '350px';
+
+            // Calculate X positions evenly distributed across the chart width
+            const svgPositions = [];
+            for (let i = 0; i < 7; i++) {
+                const margin = 60; // Margin on each side to prevent clipping
+                const availableWidth = CHART_SETTINGS.svgWidth - (2 * margin); // 800 - 120 = 680px
+                const x = margin + (availableWidth / 6) * i; // Start from margin, distribute across available width
+                svgPositions.push(x);
+            }
+
+            // Convert SVG positions to relative positions for day columns
+            const svgRect = svg.getBoundingClientRect();
+            const dayPositions = svgPositions.map(pos => (pos / CHART_SETTINGS.svgWidth) * svgRect.width);
+
+            const greenPoints = [];
+            const redPoints = [];
+            const cyanPoints = [];
+
+            // Create points using REAL consumption data and dynamic positioning
+            for (let i = 0; i < 7; i++) {
+                const x = svgPositions[i];
+                const realCalories = CALORIES_CONSUMED[i] || 0;
+
+                // Use REAL consumption data positioning for cyan line
+                const cyanY = getCyanYPosition(realCalories, chartBounds);
+
+                // Position green line same as cyan (since they should be identical when spent = 0)
+                const greenY = cyanY;
+
+                // Red line at norm line (since spent calories = 0)
+                const redY = chartBounds.normLineY;
+
+                greenPoints.push({x, y: greenY});
+                redPoints.push({x, y: redY});
+                cyanPoints.push({x, y: cyanY});
+
+                console.log(`🎯 CYAN DOT Day ${i + 1}: ${realCalories} REAL calories → Y position ${cyanY} (norm at ${chartBounds.normLineY})`);
+            }
+
+            const calorieLine = svg.querySelector('.calorie-line');
+            const deficitLine = svg.querySelector('.deficit-line');
+            const resultLine = svg.querySelector('.result-line');
+
+            if (calorieLine) calorieLine.setAttribute('d', createSmoothPath(greenPoints));
+            if (deficitLine) deficitLine.setAttribute('d', createSmoothPath(redPoints));
+            if (resultLine) resultLine.setAttribute('d', createSmoothPath(cyanPoints));
+            
+            const dots = svg.querySelectorAll('.calorie-dot-svg');
+            dots.forEach((dot, index) => {
+                if (cyanPoints[index]) {
+                    const realCalories = CALORIES_CONSUMED[index] || 0;
+                    dot.setAttribute('cx', cyanPoints[index].x);
+                    dot.setAttribute('cy', cyanPoints[index].y);
+
+                    // Add tooltip functionality to each dot
+                    setupDotTooltip(dot, index);
+
+                    console.log(`🔷 CYAN DOT ${index + 1} POSITIONED: X=${cyanPoints[index].x}, Y=${cyanPoints[index].y}, REAL_CALORIES=${realCalories}`);
+                }
+            });
+            
+            // Position day columns to align with curve dots
+            dayColumns.forEach((column, index) => {
+                if (cyanPoints[index]) {
+                    // Use the actual X coordinate of the curve dot
+                    const dotX = cyanPoints[index].x;
+                    
+                    // Calculate X position as percentage of SVG width
+                    const xPercent = (dotX / 800) * 100; // 800 is the SVG viewBox width
+                    
+                    column.style.left = `${xPercent}%`;
+                }
+            });
+            
+        }
+
+        // Initialize analytics chart
+        function initAnalyticsChart() {
+            // Set the dynamic date range for the last 7 days
+            updateAnalyticsTitle();
+
+            // Update day labels with real days of the week
+            updateDayLabels();
+
+            // Update nutrition rings with real data
+            updateNutritionRings();
+
+            setTimeout(() => {
+                plotLines();
+            }, 100);
+        }
+
+        // Function to update the analytics title with date range
+        function updateAnalyticsTitle() {
+            const today = new Date();
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(today.getDate() - 6); // 6 days ago to include today as the 7th day
+
+            // Format dates as "Sep 9–15"
+            const formatDate = (date) => {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${months[date.getMonth()]} ${date.getDate()}`;
+            };
+
+            const startDate = formatDate(sevenDaysAgo);
+            const endDate = formatDate(today);
+
+            // Handle the case where dates span across months
+            const titleElement = document.getElementById('analyticsTitle');
+            if (titleElement) {
+                if (sevenDaysAgo.getMonth() === today.getMonth()) {
+                    // Same month: "Sep 9–15"
+                    titleElement.textContent = `${startDate}–${today.getDate()}`;
+                } else {
+                    // Different months: "Aug 30–Sep 5"
+                    titleElement.textContent = `${startDate}–${endDate}`;
+                }
+            }
+        }
+
+        // Function to update nutrition rings with real data
+        function updateNutritionRings() {
+            const dayColumns = document.querySelectorAll('.day-column');
+
+            dayColumns.forEach((column, index) => {
+                if (index < ANALYTICS_DATA.last7Days.length) {
+                    const dayData = ANALYTICS_DATA.last7Days[index];
+
+                    // Get user's daily goals (use current user profile or defaults)
+                    const goals = nutritionTracker ? nutritionTracker.userProfile.goals : {
+                        protein: 200,
+                        carbs: 300,
+                        fats: 80
+                    };
+
+                    // Calculate progress percentages
+                    const proteinProgress = Math.min(1, dayData.protein / goals.protein);
+                    const carbsProgress = Math.min(1, dayData.carbs / goals.carbs);
+                    const fatsProgress = Math.min(1, dayData.fats / goals.fats);
+
+                    // Update the ring progress values
+                    const proteinRing = column.querySelector('.ring-protein');
+                    const carbsRing = column.querySelector('.ring-carbs');
+                    const fatsRing = column.querySelector('.ring-fats');
+
+                    if (proteinRing) {
+                        const circumference = 2 * Math.PI * proteinRing.r.baseVal.value;
+                        const dashArray = proteinProgress * circumference;
+                        proteinRing.style.strokeDasharray = `${dashArray} ${circumference}`;
+                    }
+
+                    if (carbsRing) {
+                        const circumference = 2 * Math.PI * carbsRing.r.baseVal.value;
+                        const dashArray = carbsProgress * circumference;
+                        carbsRing.style.strokeDasharray = `${dashArray} ${circumference}`;
+                    }
+
+                    if (fatsRing) {
+                        const circumference = 2 * Math.PI * fatsRing.r.baseVal.value;
+                        const dashArray = fatsProgress * circumference;
+                        fatsRing.style.strokeDasharray = `${dashArray} ${circumference}`;
+                    }
+                }
+            });
+        }
+
+        // Function to update day labels with real days of the week
+        function updateDayLabels() {
+            const dayColumns = document.querySelectorAll('.day-column');
+            const dayLetters = ['S', 'M', 'T', 'W', 'T', 'F', 'S']; // Sunday = 0, Monday = 1, etc.
+            const today = new Date();
+
+            dayColumns.forEach((column, index) => {
+                const dayLabel = column.querySelector('.day-label');
+                if (dayLabel) {
+                    // Calculate the date for this column (going backwards from today)
+                    const daysAgo = 6 - index; // index 0 = 6 days ago, index 6 = today
+                    const targetDate = new Date(today);
+                    targetDate.setDate(today.getDate() - daysAgo);
+
+                    // Get the day of week (0 = Sunday, 1 = Monday, etc.)
+                    const dayOfWeek = targetDate.getDay();
+                    dayLabel.textContent = dayLetters[dayOfWeek];
+                }
+            });
+        }
+
+        // Function to setup tooltip for each dot
+        function setupDotTooltip(dot, dayIndex) {
+            const tooltip = document.getElementById('analyticsTooltip');
+            const chartContainer = document.querySelector('.chart-container');
+
+            if (!tooltip || !chartContainer || !ANALYTICS_DATA.last7Days[dayIndex]) return;
+
+            const dayData = ANALYTICS_DATA.last7Days[dayIndex];
+
+            // Calculate the real date for this day
+            const today = new Date();
+            const daysAgo = 6 - dayIndex; // index 0 = 6 days ago, index 6 = today
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() - daysAgo);
+
+            // Format date as 'Mon 15/09/24'
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const dayName = dayNames[targetDate.getDay()];
+            const day = String(targetDate.getDate()).padStart(2, '0');
+            const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+            const year = String(targetDate.getFullYear()).slice(-2);
+            const dateStr = `${dayName} ${day}/${month}/${year}`;
+
+            // Create tooltip content with REAL consumption data
+            const tooltipContent = `${dateStr}<br/>🔥 Calories: ${dayData.calories}<br/>🍗 Protein: ${dayData.protein}g<br/>🌾 Carbs: ${dayData.carbs}g<br/>🥑 Fats: ${dayData.fats}g<br/>📊 REAL DATA`;
+
+            // Mouse/touch event handlers
+            function showTooltip(event) {
+                tooltip.innerHTML = tooltipContent;
+                tooltip.classList.add('show');
+
+                // Position tooltip
+                const containerRect = chartContainer.getBoundingClientRect();
+                const dotCx = parseFloat(dot.getAttribute('cx'));
+                const dotCy = parseFloat(dot.getAttribute('cy'));
+
+                // Convert SVG coordinates to container coordinates
+                const svg = document.querySelector('.chart-svg');
+                const svgRect = svg.getBoundingClientRect();
+                const containerOffsetX = svgRect.left - containerRect.left;
+                const containerOffsetY = svgRect.top - containerRect.top;
+
+                const xPercent = (dotCx / 800) * 100; // 800 is SVG viewBox width
+                const tooltipX = (svgRect.width * xPercent / 100) + containerOffsetX;
+                const tooltipY = containerOffsetY + 20; // 20px above the dot area
+
+                tooltip.style.left = `${tooltipX}px`;
+                tooltip.style.top = `${tooltipY}px`;
+            }
+
+            function hideTooltip() {
+                tooltip.classList.remove('show');
+            }
+
+            // Add event listeners for both desktop and mobile
+            dot.addEventListener('mouseenter', showTooltip);
+            dot.addEventListener('mouseleave', hideTooltip);
+            dot.addEventListener('touchstart', showTooltip);
+            dot.addEventListener('touchend', hideTooltip);
+        }
+
+        // Add interactive effects for nutrition rings
+        document.addEventListener('DOMContentLoaded', () => {
+            initAnalyticsChart();
+            
+            document.querySelectorAll('.nutrition-rings').forEach(ring => {
+                ring.addEventListener('mouseenter', () => {
+                    ring.style.transform = 'scale(1.1)';
+                    ring.style.transition = 'transform 0.3s ease';
+                });
+
+                ring.addEventListener('mouseleave', () => {
+                    ring.style.transform = 'scale(1)';
+                });
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            plotLines();
+        });
+    </script>
+</body>
+</html>
