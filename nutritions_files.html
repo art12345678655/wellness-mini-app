@@ -795,15 +795,18 @@
             }
 
             async init() {
+                console.log('🚨 NutritionTracker.init() called!');
                 if (this.isInitialized) {
                     console.log('Already initialized, skipping');
                     return;
                 }
 
                 // First load user card data (black card)
+                console.log('🚨 About to call loadUserData()...');
                 await this.loadUserData();
 
                 // Then load REAL analytics data for cyan line
+                console.log('🚨 About to call loadAnalyticsData()...');
                 await this.loadAnalyticsData();
 
                 // Update cards (preserve black card functionality)
@@ -881,13 +884,18 @@
 
             // Load analytics data - prioritize today's REAL data over everything
             async loadAnalyticsData() {
+                console.log('🚨 loadAnalyticsData() function called!');
                 try {
                     let userId = 'user_123';
 
                     if (telegramUserId) {
                         userId = telegramUserId.toString();
+                        console.log('🚨 Using Telegram userId:', userId);
                     } else if (USER_CONFIG && USER_CONFIG.userId) {
                         userId = USER_CONFIG.userId;
+                        console.log('🚨 Using USER_CONFIG userId:', userId);
+                    } else {
+                        console.log('🚨 Using default userId:', userId);
                     }
 
                     console.log('🔥 PRIORITY: Loading TODAY\'S REAL DATA first for user:', userId);
@@ -1174,7 +1182,9 @@
         let isInitialized = false;
 
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚨 DOMContentLoaded event fired!');
             if (!isInitialized) {
+                console.log('🚨 Initializing NutritionTracker...');
                 isInitialized = true;
                 nutritionTracker = new NutritionTracker();
                 await nutritionTracker.init();
