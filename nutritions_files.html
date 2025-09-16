@@ -800,12 +800,39 @@
                     return;
                 }
 
+                // First load user card data (black card)
                 await this.loadUserData();
+
+                // Then load REAL analytics data for cyan line
                 await this.loadAnalyticsData();
+
+                // Update cards (preserve black card functionality)
                 this.updateValues();
                 this.updateProgressRings();
+
+                // Force validate cyan line has real data
+                this.validateCyanLineData();
+
                 this.isInitialized = true;
-                console.log('Data loaded and stable - no more changes');
+                console.log('Data loaded and stable - cyan line uses REAL data only');
+            }
+
+            // Validate cyan line uses real data
+            validateCyanLineData() {
+                const hasRealData = CALORIES_CONSUMED.length > 0 && CALORIES_CONSUMED.some(cal => cal > 0);
+
+                if (hasRealData) {
+                    console.log('✅ CYAN LINE: Using REAL consumption data:', CALORIES_CONSUMED);
+                } else {
+                    console.warn('⚠️ CYAN LINE: No real consumption data available - showing empty line');
+                }
+
+                console.log('🎯 CYAN LINE STATUS:', {
+                    dataLength: CALORIES_CONSUMED.length,
+                    totalCalories: CALORIES_CONSUMED.reduce((a, b) => a + b, 0),
+                    dailyValues: CALORIES_CONSUMED,
+                    isRealData: hasRealData
+                });
             }
 
             // Load user data from backend API
@@ -917,19 +944,18 @@
                 } catch (error) {
                     console.error('❌ CRITICAL: All data loading failed:', error);
 
-                    // Only use emergency data if we literally cannot get any real data
-                    console.warn('🚨 Using emergency fallback since we cannot reach any API');
+                    // Show EMPTY cyan line instead of fake data
+                    console.warn('🚨 NO REAL DATA AVAILABLE - Cyan line will show empty');
                     ANALYTICS_DATA = {
-                        dailyNorm: 2500,
-                        last7Days: [
-                            { date: '', calories: 1800, protein: 120, carbs: 200, fats: 60, caloriesSpent: 0 },
-                            { date: '', calories: 2200, protein: 150, carbs: 280, fats: 75, caloriesSpent: 0 },
-                            { date: '', calories: 1950, protein: 140, carbs: 220, fats: 65, caloriesSpent: 0 },
-                            { date: '', calories: 2750, protein: 180, carbs: 320, fats: 95, caloriesSpent: 0 },
-                            { date: '', calories: 2100, protein: 160, carbs: 250, fats: 70, caloriesSpent: 0 },
-                            { date: '', calories: 1600, protein: 100, carbs: 180, fats: 55, caloriesSpent: 0 },
-                            { date: '', calories: 2400, protein: 170, carbs: 290, fats: 80, caloriesSpent: 0 }
-                        ]
+                        dailyNorm: 2500, // Default target
+                        last7Days: Array(7).fill().map((_, index) => ({
+                            date: '',
+                            calories: 0,  // Show 0 calories = EMPTY cyan line
+                            protein: 0,
+                            carbs: 0,
+                            fats: 0,
+                            caloriesSpent: 0
+                        }))
                     };
 
                     DAILY_NORM = ANALYTICS_DATA.dailyNorm;
@@ -937,10 +963,12 @@
                     CALORIES_SPENT = ANALYTICS_DATA.last7Days.map(day => 0);
                     CALORIES_DIFFERENCE = CALORIES_CONSUMED.map(consumed => consumed);
 
+                    console.warn('🎯 CYAN LINE: No real data - showing empty line at bottom of chart');
+
                     setTimeout(() => {
                         updateNutritionRings();
                         plotLines();
-                        console.log('✅ Charts updated with emergency data');
+                        console.log('✅ Charts updated - cyan line empty due to no real data');
                     }, 100);
                 }
             }
@@ -1125,7 +1153,11 @@
                 await nutritionTracker.loadAnalyticsData();
                 nutritionTracker.updateValues();
                 nutritionTracker.updateProgressRings();
-                console.log('Nutrition data refreshed');
+
+                // Validate cyan line still uses real data after refresh
+                nutritionTracker.validateCyanLineData();
+
+                console.log('Nutrition data refreshed - cyan line validated');
             }
         }
 
@@ -1171,26 +1203,17 @@
         // ANALYTICS CHART FUNCTIONALITY
         // ========================================
 
-        // Analytics data - will be loaded from API (initialized with sample data to prevent flat line)
+        // Analytics data - will be loaded from API (NO hardcoded sample data)
         let ANALYTICS_DATA = {
-            dailyNorm: 2500, // Will be replaced with real user target
-            last7Days: [
-                // Sample data showing varied daily intakes - will be replaced with real data
-                { date: '', calories: 1800, protein: 120, carbs: 200, fats: 60, caloriesSpent: 0 },
-                { date: '', calories: 2200, protein: 150, carbs: 280, fats: 75, caloriesSpent: 0 },
-                { date: '', calories: 1950, protein: 140, carbs: 220, fats: 65, caloriesSpent: 0 },
-                { date: '', calories: 2750, protein: 180, carbs: 320, fats: 95, caloriesSpent: 0 },
-                { date: '', calories: 2100, protein: 160, carbs: 250, fats: 70, caloriesSpent: 0 },
-                { date: '', calories: 1600, protein: 100, carbs: 180, fats: 55, caloriesSpent: 0 },
-                { date: '', calories: 2400, protein: 170, carbs: 290, fats: 80, caloriesSpent: 0 }
-            ]
+            dailyNorm: 0, // Will be loaded from real user target
+            last7Days: []  // Will be populated with REAL consumption data from API
         };
 
-        // Legacy arrays for backward compatibility (initialized with empty data)
-        let DAILY_NORM = ANALYTICS_DATA.dailyNorm;
-        let CALORIES_CONSUMED = ANALYTICS_DATA.last7Days.map(day => day.calories);
-        let CALORIES_SPENT = ANALYTICS_DATA.last7Days.map(day => 0); // All zeros as requested
-        let CALORIES_DIFFERENCE = CALORIES_CONSUMED.map(consumed => consumed); // Same as consumed since spent = 0
+        // Legacy arrays for cyan line - will be populated with REAL data only
+        let DAILY_NORM = 0;  // Will be set from real user targets
+        let CALORIES_CONSUMED = []; // Will contain REAL calorie consumption data
+        let CALORIES_SPENT = []; // All zeros as requested
+        let CALORIES_DIFFERENCE = []; // Same as consumed since spent = 0
         
         // Chart settings
         const CHART_SETTINGS = {
@@ -1204,14 +1227,14 @@
         // Function to calculate dynamic chart bounds based on real data
         function calculateDynamicChartBounds() {
             if (!CALORIES_CONSUMED || CALORIES_CONSUMED.length === 0) {
-                console.warn('⚠️ No CALORIES_CONSUMED data, using default bounds');
+                console.warn('⚠️ CYAN LINE: No consumption data - using default bounds');
                 return {
                     minY: 50,
                     maxY: 350,
                     normLineY: 200,
                     scale: 0.1,
                     rangeMin: 0,
-                    rangeMax: 3000
+                    rangeMax: DAILY_NORM || 2500
                 };
             }
 
@@ -1220,13 +1243,14 @@
 
             let minCalories, maxCalories;
             if (nonZeroCalories.length === 0) {
-                // All zeros - use default range
+                // All zeros - REAL scenario when user has no consumption data
                 minCalories = 0;
-                maxCalories = DAILY_NORM * 1.5;
-                console.warn('⚠️ All calories are zero, using default range');
+                maxCalories = DAILY_NORM || 2500;
+                console.log('🎯 CYAN LINE: All consumption is zero - REAL empty data, cyan line at bottom');
             } else {
                 minCalories = Math.min(...nonZeroCalories);
                 maxCalories = Math.max(...nonZeroCalories);
+                console.log('🎯 CYAN LINE: Using REAL consumption range:', {minCalories, maxCalories});
             }
 
             // Add padding above and below the data range
