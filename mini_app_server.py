@@ -164,28 +164,42 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
         daily_carbs = float(user_profile.get('carbs_target_g', 250))
         daily_fats = float(user_profile.get('fat_target_g', 65))
 
-        # Get nutrition data for each of the last N days
-        historical_data = []
-        today = datetime.datetime.now(datetime.timezone.utc).date()
+        # Get REAL nutrition data directly from recent_daily_nutrition_summary view
+        logger.info(f"🔍 DEBUG: Using recent_daily_nutrition_summary view for user_telegram_id={user_telegram_id}")
 
-        # Get REAL nutrition data for each day from database only
+        recent_summaries = await supabase_client.get_recent_daily_summaries(user_telegram_id, days)
+        logger.info(f"🔍 DEBUG: Got {len(recent_summaries)} days from recent_daily_nutrition_summary view")
+
+        # Convert view data to historical format, ensuring we have exactly 7 days
+        today = datetime.datetime.now(datetime.timezone.utc).date()
+        historical_data = []
         total_real_calories = 0
         days_with_data = 0
-        historical_data = []
+
+        # Create a lookup dict from the view data
+        summary_lookup = {summary['date']: summary for summary in recent_summaries}
 
         for i in range(days):
-            target_date = today - datetime.timedelta(days=days - 1 - i)  # Start from N days ago
-            logger.info(f"🔍 DEBUG: Querying database for user_telegram_id={user_telegram_id}, date={target_date}")
+            target_date = today - datetime.timedelta(days=days - 1 - i)
+            date_str = target_date.isoformat()
 
-            day_nutrition = await supabase_client.get_nutrition_summary_for_date(user_telegram_id, target_date)
-            logger.info(f"🔍 DEBUG: Raw database response for {target_date}: {day_nutrition}")
+            if date_str in summary_lookup:
+                # Use data from recent_daily_nutrition_summary view
+                summary = summary_lookup[date_str]
+                calories_consumed = summary['total_calories']
+                protein_consumed = summary['total_protein_g']
+                carbs_consumed = summary['total_carbs_g']
+                fats_consumed = summary['total_fat_g']
 
-            calories_consumed = float(day_nutrition.get('total_calories', 0))
-            protein_consumed = float(day_nutrition.get('total_protein_g', 0))
-            carbs_consumed = float(day_nutrition.get('total_carbs_g', 0))
-            fats_consumed = float(day_nutrition.get('total_fat_g', 0))
+                logger.info(f"✅ {date_str}: Found in view - {calories_consumed} calories, {summary['meals_logged_count']} meals")
+            else:
+                # No data for this day
+                calories_consumed = 0
+                protein_consumed = 0
+                carbs_consumed = 0
+                fats_consumed = 0
 
-            logger.info(f"🔍 DEBUG: Converted values for {target_date}: calories={calories_consumed}, protein={protein_consumed}, carbs={carbs_consumed}, fats={fats_consumed}")
+                logger.info(f"❌ {date_str}: No data found in recent_daily_nutrition_summary view")
 
             # Track real data statistics
             if calories_consumed > 0:
@@ -193,14 +207,14 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
             total_real_calories += calories_consumed
 
             historical_data.append({
-                'date': target_date.isoformat(),
+                'date': date_str,
                 'calories': calories_consumed,
                 'protein': protein_consumed,
                 'carbs': carbs_consumed,
                 'fats': fats_consumed
             })
 
-            logger.info(f"📊 {target_date}: {calories_consumed} calories consumed from database")
+            logger.info(f"🔍 DEBUG: Day {i+1} ({date_str}): calories={calories_consumed}, protein={protein_consumed}, carbs={carbs_consumed}, fats={fats_consumed}")
 
         # Always return real data from database (no sample data substitution)
         average_calories = total_real_calories / days if days > 0 else 0

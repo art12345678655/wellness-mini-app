@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 import logging
-from typing import Dict
+from typing import Dict, List
 from supabase import create_client
 from config import SUPABASE_URL, SUPABASE_ANON_KEY
 
@@ -113,6 +113,37 @@ class SupabaseMiniApp:
                 'total_carbs_g': 0.0,
                 'total_fat_g': 0.0
             }
+
+    async def get_recent_daily_summaries(self, user_telegram_id: int, days: int = 7) -> List[Dict]:
+        """Get recent daily nutrition summaries directly from recent_daily_nutrition_summary view."""
+        try:
+            logger.info(f"🔍 Getting {days} days from recent_daily_nutrition_summary view for user {user_telegram_id}")
+
+            result = self.client.table('recent_daily_nutrition_summary').select(
+                'date, total_calories, total_protein_g, total_carbs_g, total_fat_g, meals_logged_count'
+            ).eq('user_telegram_id', user_telegram_id).order('date', desc=True).limit(days).execute()
+
+            if result.data:
+                logger.info(f"✅ Found {len(result.data)} days of data from recent_daily_nutrition_summary view")
+                summaries = []
+                for row in result.data:
+                    summaries.append({
+                        'date': row.get('date'),
+                        'total_calories': float(row.get('total_calories', 0) or 0),
+                        'total_protein_g': float(row.get('total_protein_g', 0) or 0),
+                        'total_carbs_g': float(row.get('total_carbs_g', 0) or 0),
+                        'total_fat_g': float(row.get('total_fat_g', 0) or 0),
+                        'meals_logged_count': int(row.get('meals_logged_count', 0) or 0)
+                    })
+                    logger.info(f"📊 {row.get('date')}: {row.get('total_calories', 0)} calories, {row.get('meals_logged_count', 0)} meals")
+                return summaries
+            else:
+                logger.warning(f"No data found in recent_daily_nutrition_summary view for user {user_telegram_id}")
+                return []
+
+        except Exception as e:
+            logger.exception(f"Failed to get recent daily summaries for user {user_telegram_id}: {e}")
+            return []
 
     async def get_user_nutrition_data(self, user_telegram_id: int) -> Dict:
         """Get complete nutrition data for user (targets + consumed today)"""
