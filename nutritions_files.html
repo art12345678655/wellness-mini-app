@@ -1135,10 +1135,10 @@
                 document.getElementById('fatsValue').textContent = remainingFats + 'g';
 
                 // Update subtitles - "Kcal Left" for calories, "Left" for others
-                document.querySelector('.card.calories .card-subtitle').textContent = 'Kcal Left';
-                document.querySelector('.card.protein .card-subtitle').textContent = 'Left';
-                document.querySelector('.card.carbs .card-subtitle').textContent = 'Left';
-                document.querySelector('.card.fats .card-subtitle').textContent = 'Left';
+                document.querySelector('.card.calories .card-subtitle').textContent = 'Kcal Осталось';
+                document.querySelector('.card.protein .card-subtitle').textContent = 'Белка Ост.';
+                document.querySelector('.card.carbs .card-subtitle').textContent = 'Углеводов Ост.';
+                document.querySelector('.card.fats .card-subtitle').textContent = 'Жиров Ост.';
 
                 console.log('Values updated - stable data:', {
                     calories: remainingCalories,
@@ -1529,8 +1529,8 @@
 
             // Format dates as "Sep 9–15"
             const formatDate = (date) => {
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                              'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
                 return `${months[date.getMonth()]} ${date.getDate()}`;
             };
 
@@ -1614,7 +1614,7 @@
         // Function to update day labels with real days of the week
         function updateDayLabels() {
             const dayColumns = document.querySelectorAll('.day-column');
-            const dayLetters = ['S', 'M', 'T', 'W', 'T', 'F', 'S']; // Sunday = 0, Monday = 1, etc.
+            const dayLetters = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']; // Sunday = 0, Monday = 1, etc.
             const today = new Date();
 
             dayColumns.forEach((column, index) => {
