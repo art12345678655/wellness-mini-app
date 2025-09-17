@@ -551,10 +551,10 @@ class RequestHandler(BaseHTTPRequestHandler):
         html_content = html_content.replace('id="fatsValue">61</div>', f'id="fatsValue">{fat_remaining}g</div>')
 
         # Update subtitles to show "Kcal Left" and "Left"
-        html_content = html_content.replace('calories left</div>', 'Kcal Left</div>')
-        html_content = html_content.replace('protein left</div>', 'Left</div>')
-        html_content = html_content.replace('carbs left</div>', 'Left</div>')
-        html_content = html_content.replace('fats left</div>', 'Left</div>')
+        html_content = html_content.replace('calories left</div>', 'Kcal Осталось</div>')
+        html_content = html_content.replace('protein left</div>', 'Белка Ост.</div>')
+        html_content = html_content.replace('carbs left</div>', 'Углеводов Ост.</div>')
+        html_content = html_content.replace('fats left</div>', 'Жиров Ост.</div>')
 
         # Update user profile data in JavaScript
         html_content = html_content.replace(
