@@ -355,19 +355,19 @@
 
 
         .result-line {
-            stroke: #00E0C6;
+            stroke: #1DA1F2;
             stroke-width: 6;
             fill: none;
             stroke-linecap: round;
             stroke-linejoin: round;
-            filter: drop-shadow(0 0 6px rgba(0, 224, 198, 0.7));
+            filter: drop-shadow(0 0 8px rgba(29, 161, 242, 0.6));
         }
 
         .calorie-dot-svg {
-            fill: #00E0C6;
+            fill: #1DA1F2;
             stroke: white;
             stroke-width: 2;
-            filter: drop-shadow(0 0 6px rgba(0, 224, 198, 0.7));
+            filter: drop-shadow(0 0 6px rgba(29, 161, 242, 0.6));
         }
 
         /* Updated styles for day container and rings */
@@ -486,7 +486,7 @@
 
         .calorie-dot-svg:hover {
             r: 10;
-            fill: #00E0C6;
+            fill: #1DA1F2;
         }
 
         /* Responsive adjustments for analytics */
@@ -629,16 +629,17 @@
             <div class="analytics-title" id="analyticsTitle">Last 7 days</div>
             <div class="chart-container">
                 <svg class="chart-svg" viewBox="0 0 800 300">
-                    <!-- Gradient definition for fill between cyan line and black line -->
+                    <!-- Gradient definition for fill between electric blue line and black line -->
                     <defs>
-                        <linearGradient id="cyanToTransparent" x1="0%" y1="0%" x2="0%" y2="100%" gradientUnits="objectBoundingBox">
-                            <stop offset="0%" style="stop-color:#00E0C6;stop-opacity:0.4" />
-                            <stop offset="100%" style="stop-color:#00E0C6;stop-opacity:0" />
+                        <linearGradient id="performanceGradient" x1="0%" y1="0%" x2="100%" y2="100%" gradientUnits="objectBoundingBox">
+                            <stop offset="0%" style="stop-color:#9C27FF;stop-opacity:0.6" />
+                            <stop offset="50%" style="stop-color:#E94057;stop-opacity:0.5" />
+                            <stop offset="100%" style="stop-color:#F27121;stop-opacity:0.4" />
                         </linearGradient>
                     </defs>
 
-                    <!-- Fill area between cyan line and black reference line -->
-                    <path class="gradient-fill" d="" fill="url(#cyanToTransparent)" stroke="none"></path>
+                    <!-- Fill area between electric blue line and black reference line -->
+                    <path class="gradient-fill" d="" fill="url(#performanceGradient)" stroke="none"></path>
 
                     <!-- Black norm line -->
                     <line x1="0" y1="150" x2="800" y2="150" stroke="#000000" stroke-width="4" stroke-dasharray="5,5"></line>
