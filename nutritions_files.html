@@ -1396,10 +1396,11 @@
                 const dx = currentPoint.x - prevPoint.x;
                 const dy = currentPoint.y - prevPoint.y;
 
-                const cp1x = prevPoint.x + dx * 0.3;
-                const cp1y = prevPoint.y;
-                const cp2x = currentPoint.x - dx * 0.3;
-                const cp2y = currentPoint.y;
+                // Create smoother curves by allowing vertical movement in control points
+                const cp1x = prevPoint.x + dx * 0.4;
+                const cp1y = prevPoint.y + dy * 0.2;
+                const cp2x = currentPoint.x - dx * 0.4;
+                const cp2y = currentPoint.y - dy * 0.2;
 
                 path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${currentPoint.x},${currentPoint.y}`;
             }
