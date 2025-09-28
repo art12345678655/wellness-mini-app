@@ -278,6 +278,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.handle_api_historical_data(query_params)
             elif path == '/api/streak-data':
                 self.handle_api_streak_data(query_params)
+            elif path.startswith('/images/'):
+                self.handle_static_file(path)
             else:
                 self.send_error(404, "Not Found")
 
@@ -564,6 +566,48 @@ class RequestHandler(BaseHTTPRequestHandler):
                 "current_streak": 0
             }
             self.send_json_response(fallback_response)
+
+    def handle_static_file(self, path):
+        """Serve static files like images"""
+        try:
+            # Remove leading slash and construct file path
+            file_path = path.lstrip('/')
+
+            # Basic security check
+            if '..' in file_path:
+                self.send_error(403, "Forbidden")
+                return
+
+            # Check if file exists
+            if not os.path.exists(file_path):
+                self.send_error(404, "File not found")
+                return
+
+            # Determine content type
+            if file_path.endswith('.png'):
+                content_type = 'image/png'
+            elif file_path.endswith('.jpg') or file_path.endswith('.jpeg'):
+                content_type = 'image/jpeg'
+            elif file_path.endswith('.gif'):
+                content_type = 'image/gif'
+            else:
+                content_type = 'application/octet-stream'
+
+            # Read and serve file
+            with open(file_path, 'rb') as f:
+                content = f.read()
+
+            self.send_response(200)
+            self.send_header('Content-Type', content_type)
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
+
+            logger.info(f"✅ Served static file: {file_path}")
+
+        except Exception as e:
+            logger.error(f"❌ Error serving static file {path}: {e}")
+            self.send_error(500, f"Error serving file: {str(e)}")
 
     def read_html_file(self):
         """Read the HTML template file"""
