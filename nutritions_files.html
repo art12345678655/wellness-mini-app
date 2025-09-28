@@ -831,9 +831,22 @@
                     return;
                 }
 
-                // First load user card data (black card)
-                console.log('🚨 About to call loadUserData()...');
-                await this.loadUserData();
+                // Load user data and streak data in parallel for faster loading
+                console.log('🚨 About to call loadUserData() and loadStreakData() in parallel...');
+
+                // Get user ID first
+                let userId = 'user_123';
+                if (telegramUserId) {
+                    userId = telegramUserId.toString();
+                } else if (USER_CONFIG && USER_CONFIG.userId) {
+                    userId = USER_CONFIG.userId;
+                }
+
+                // Load both nutrition data and streak data simultaneously
+                await Promise.all([
+                    this.loadUserData(),
+                    this.loadStreakData(userId)
+                ]);
 
                 // Then load REAL analytics data for cyan line
                 console.log('🚨 About to call loadAnalyticsData()...');
@@ -906,16 +919,6 @@
                     };
 
                     console.log('Loaded user data:', data);
-
-                    // Load streak data - ensure DOM is ready and call it independently
-                    setTimeout(async () => {
-                        try {
-                            await this.loadStreakData(userId);
-                        } catch (streakError) {
-                            console.error('Streak loading failed:', streakError);
-                            this.updateStreakDisplay(0);
-                        }
-                    }, 100);
                 } catch (error) {
                     console.error('Failed to load user data:', error);
                     // Keep default values if API fails
@@ -1294,22 +1297,6 @@
                 nutritionTracker = new NutritionTracker();
                 await nutritionTracker.init();
                 console.log('Nutrition tracker initialized with stable data');
-
-                // Independent streak initialization as backup
-                setTimeout(async () => {
-                    try {
-                        let userId = 'user_123';
-                        if (telegramUserId) {
-                            userId = telegramUserId.toString();
-                        } else if (USER_CONFIG && USER_CONFIG.userId) {
-                            userId = USER_CONFIG.userId;
-                        }
-                        console.log('🔥 Backup streak init for user:', userId);
-                        await nutritionTracker.loadStreakData(userId);
-                    } catch (e) {
-                        console.error('🔥 Backup streak init failed:', e);
-                    }
-                }, 2000);
             }
         });
 
