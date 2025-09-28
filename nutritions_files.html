@@ -918,20 +918,24 @@
             async loadStreakData(userId) {
                 try {
                     const apiUrl = USER_CONFIG ? `${USER_CONFIG.apiBaseUrl}/api/streak-data?user_id=${userId}` : `/api/streak-data?user_id=${userId}`;
-                    console.log('Fetching streak data for user ID:', userId);
+                    console.log('🔥 Fetching streak data for user ID:', userId);
+                    console.log('🔥 Streak API URL:', apiUrl);
+
                     const response = await fetch(apiUrl);
+                    console.log('🔥 Streak API response status:', response.status);
 
                     if (response.ok) {
                         const data = await response.json();
+                        console.log('🔥 Raw streak API response:', data);
                         this.updateStreakDisplay(data.current_streak || 0);
-                        console.log('Loaded streak data:', data);
+                        console.log('🔥 Updated streak display with:', data.current_streak || 0);
                     } else {
-                        // If streak API fails, show 0
+                        const errorText = await response.text();
+                        console.error('🔥 Streak API failed with status:', response.status, 'Response:', errorText);
                         this.updateStreakDisplay(0);
-                        console.warn('Streak API failed, showing 0');
                     }
                 } catch (error) {
-                    console.error('Failed to load streak data:', error);
+                    console.error('🔥 Failed to load streak data - network error:', error);
                     // Show 0 if API fails
                     this.updateStreakDisplay(0);
                 }

@@ -257,6 +257,10 @@ async def get_user_streak_data(user_id: str) -> dict:
         return {'current_streak': 0}
 
 class RequestHandler(BaseHTTPRequestHandler):
+    def do_HEAD(self):
+        """Handle HEAD requests (for health checks)"""
+        self.do_GET()
+
     def do_GET(self):
         """Handle GET requests"""
         parsed_url = urlparse(self.path)
@@ -736,6 +740,7 @@ def run_server(port=8080):
     logger.info("   /health - Health check")
     logger.info("   /api/nutrition-data - JSON API for nutrition data")
     logger.info("   /api/historical-data - JSON API for historical nutrition data")
+    logger.info("   /api/streak-data - JSON API for streak data")
     httpd.serve_forever()
 
 if __name__ == '__main__':
