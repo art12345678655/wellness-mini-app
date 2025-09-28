@@ -241,13 +241,14 @@ async def get_user_streak_data(user_id: str) -> dict:
         logger.info(f"🔥 Getting streak data for user {user_id}")
         user_telegram_id = int(user_id)
 
-        # Get user's current streak from the database
-        user_profile = await supabase_client.get_user_profile(user_telegram_id)
-        if not user_profile:
-            logger.warning(f"No user profile found for user {user_telegram_id}, returning streak 0")
+        # Get user's current streak from the database - query streak field specifically
+        result = await supabase_client._client.table('users').select('current_streak').eq('user_id', user_telegram_id).execute()
+
+        if not result.data:
+            logger.warning(f"No user found for user {user_telegram_id}, returning streak 0")
             return {'current_streak': 0}
 
-        current_streak = user_profile.get('current_streak', 0) or 0
+        current_streak = result.data[0].get('current_streak', 0) or 0
         logger.info(f"✅ User {user_telegram_id} has streak: {current_streak} days")
 
         return {'current_streak': current_streak}
