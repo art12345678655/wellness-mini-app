@@ -907,8 +907,15 @@
 
                     console.log('Loaded user data:', data);
 
-                    // Load streak data
-                    await this.loadStreakData(userId);
+                    // Load streak data - ensure DOM is ready and call it independently
+                    setTimeout(async () => {
+                        try {
+                            await this.loadStreakData(userId);
+                        } catch (streakError) {
+                            console.error('Streak loading failed:', streakError);
+                            this.updateStreakDisplay(0);
+                        }
+                    }, 100);
                 } catch (error) {
                     console.error('Failed to load user data:', error);
                     // Keep default values if API fails
@@ -916,27 +923,40 @@
             }
 
             async loadStreakData(userId) {
-                try {
-                    const apiUrl = USER_CONFIG ? `${USER_CONFIG.apiBaseUrl}/api/streak-data?user_id=${userId}` : `/api/streak-data?user_id=${userId}`;
-                    console.log('🔥 Fetching streak data for user ID:', userId);
-                    console.log('🔥 Streak API URL:', apiUrl);
+                console.log('🔥 loadStreakData called with userId:', userId);
 
-                    const response = await fetch(apiUrl);
-                    console.log('🔥 Streak API response status:', response.status);
+                // Ensure userId is valid
+                if (!userId || userId === 'user_123') {
+                    console.log('🔥 Invalid userId, skipping streak load');
+                    this.updateStreakDisplay(0);
+                    return;
+                }
+
+                try {
+                    const apiUrl = `/api/streak-data?user_id=${userId}`;
+                    console.log('🔥 Fetching streak from:', apiUrl);
+
+                    const response = await fetch(apiUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    console.log('🔥 Response status:', response.status);
 
                     if (response.ok) {
                         const data = await response.json();
-                        console.log('🔥 Raw streak API response:', data);
-                        this.updateStreakDisplay(data.current_streak || 0);
-                        console.log('🔥 Updated streak display with:', data.current_streak || 0);
+                        console.log('🔥 Streak data received:', data);
+                        const streakValue = data.current_streak || 0;
+                        this.updateStreakDisplay(streakValue);
+                        console.log('🔥 Streak updated to:', streakValue);
                     } else {
-                        const errorText = await response.text();
-                        console.error('🔥 Streak API failed with status:', response.status, 'Response:', errorText);
+                        console.error('🔥 API error, status:', response.status);
                         this.updateStreakDisplay(0);
                     }
                 } catch (error) {
-                    console.error('🔥 Failed to load streak data - network error:', error);
-                    // Show 0 if API fails
+                    console.error('🔥 Network error:', error);
                     this.updateStreakDisplay(0);
                 }
             }
@@ -1274,6 +1294,22 @@
                 nutritionTracker = new NutritionTracker();
                 await nutritionTracker.init();
                 console.log('Nutrition tracker initialized with stable data');
+
+                // Independent streak initialization as backup
+                setTimeout(async () => {
+                    try {
+                        let userId = 'user_123';
+                        if (telegramUserId) {
+                            userId = telegramUserId.toString();
+                        } else if (USER_CONFIG && USER_CONFIG.userId) {
+                            userId = USER_CONFIG.userId;
+                        }
+                        console.log('🔥 Backup streak init for user:', userId);
+                        await nutritionTracker.loadStreakData(userId);
+                    } catch (e) {
+                        console.error('🔥 Backup streak init failed:', e);
+                    }
+                }, 2000);
             }
         });
 
