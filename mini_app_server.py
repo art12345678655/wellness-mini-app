@@ -235,6 +235,27 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
         logger.error(f"❌ Error getting historical data for user {user_id}: {e}")
         raise Exception(f"Failed to get historical nutrition data for user {user_id}: {str(e)}")
 
+async def get_user_streak_data(user_id: str) -> dict:
+    """Get user's current streak from the database"""
+    try:
+        logger.info(f"🔥 Getting streak data for user {user_id}")
+        user_telegram_id = int(user_id)
+
+        # Get user's current streak from the database
+        user_profile = await supabase_client.get_user_profile(user_telegram_id)
+        if not user_profile:
+            logger.warning(f"No user profile found for user {user_telegram_id}, returning streak 0")
+            return {'current_streak': 0}
+
+        current_streak = user_profile.get('current_streak', 0) or 0
+        logger.info(f"✅ User {user_telegram_id} has streak: {current_streak} days")
+
+        return {'current_streak': current_streak}
+
+    except Exception as e:
+        logger.error(f"❌ Error getting streak data for user {user_id}: {e}")
+        return {'current_streak': 0}
+
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests"""
@@ -255,6 +276,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.handle_api_nutrition_data(query_params)
             elif path == '/api/historical-data':
                 self.handle_api_historical_data(query_params)
+            elif path == '/api/streak-data':
+                self.handle_api_streak_data(query_params)
             else:
                 self.send_error(404, "Not Found")
 
@@ -513,6 +536,33 @@ class RequestHandler(BaseHTTPRequestHandler):
                     "fats": 0,
                     "caloriesSpent": 0
                 })
+            self.send_json_response(fallback_response)
+
+    def handle_api_streak_data(self, query_params):
+        """API endpoint to return user's current streak"""
+        try:
+            # Get user_id from query parameters
+            user_id = query_params.get('user_id', ['user_123'])[0]
+            logger.info(f"🔥 Streak API request for user: {user_id}")
+
+            # Get streak data from database
+            streak_data = asyncio.run(get_user_streak_data(user_id))
+            logger.info(f"📊 Streak data for user {user_id}: {streak_data}")
+
+            # Format response
+            response = {
+                "user_id": user_id,
+                "current_streak": streak_data.get('current_streak', 0)
+            }
+
+            self.send_json_response(response)
+        except Exception as e:
+            logger.error(f"❌ Streak API Error for user {user_id}: {e}")
+            # Return fallback streak of 0 if API fails
+            fallback_response = {
+                "user_id": user_id,
+                "current_streak": 0
+            }
             self.send_json_response(fallback_response)
 
     def read_html_file(self):

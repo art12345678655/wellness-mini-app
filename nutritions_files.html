@@ -29,6 +29,26 @@
             gap: 15px;
         }
 
+        .streak-display {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .streak-icon-top {
+            width: 24px;
+            height: 24px;
+            opacity: 0.8;
+        }
+
+        .streak-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
         .card {
             border-radius: 16px;
             padding: 18px;
@@ -107,11 +127,12 @@
         .card.fats {
             background: #ffcd98;
             color: #1a1a1a;
-            box-shadow: 
+            box-shadow:
                 0 6px 20px rgba(0, 0, 0, 0.1),
                 0 0 15px rgba(249, 254, 134, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
+
 
         .card-header {
             display: flex;
@@ -553,6 +574,12 @@
 </head>
 <body>
     <div class="container">
+        <!-- Streak Display (Top Right) -->
+        <div class="streak-display">
+            <img src="images/stairs_streak_black.png" alt="Streak" class="streak-icon-top">
+            <span class="streak-number" id="streakValue">99</span>
+        </div>
+
         <!-- Calories Card (Large) -->
         <div class="card calories">
             <div class="card-header">
@@ -879,9 +906,42 @@
                     };
 
                     console.log('Loaded user data:', data);
+
+                    // Load streak data
+                    await this.loadStreakData(userId);
                 } catch (error) {
                     console.error('Failed to load user data:', error);
                     // Keep default values if API fails
+                }
+            }
+
+            async loadStreakData(userId) {
+                try {
+                    const apiUrl = USER_CONFIG ? `${USER_CONFIG.apiBaseUrl}/api/streak-data?user_id=${userId}` : `/api/streak-data?user_id=${userId}`;
+                    console.log('Fetching streak data for user ID:', userId);
+                    const response = await fetch(apiUrl);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.updateStreakDisplay(data.current_streak || 0);
+                        console.log('Loaded streak data:', data);
+                    } else {
+                        // If streak API fails, show 0
+                        this.updateStreakDisplay(0);
+                        console.warn('Streak API failed, showing 0');
+                    }
+                } catch (error) {
+                    console.error('Failed to load streak data:', error);
+                    // Show 0 if API fails
+                    this.updateStreakDisplay(0);
+                }
+            }
+
+            updateStreakDisplay(streakDays) {
+                const streakElement = document.getElementById('streakValue');
+                if (streakElement) {
+                    streakElement.textContent = streakDays;
+                    console.log('Updated streak display to:', streakDays);
                 }
             }
 
