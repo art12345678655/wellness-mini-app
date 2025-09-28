@@ -242,7 +242,7 @@ async def get_user_streak_data(user_id: str) -> dict:
         user_telegram_id = int(user_id)
 
         # Get user's current streak from the database - query streak field specifically
-        result = await supabase_client._client.table('users').select('current_streak').eq('user_id', user_telegram_id).execute()
+        result = supabase_client.client.table('users').select('current_streak').eq('user_id', user_telegram_id).execute()
 
         if not result.data:
             logger.warning(f"No user found for user {user_telegram_id}, returning streak 0")
