@@ -71,6 +71,69 @@
             color: #1a1a1a;
         }
 
+        /* Cat Advice Section */
+        .cat-advice-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .cat-avatar {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .cat-avatar:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .advice-bubble {
+            background: linear-gradient(135deg, #FF9A56 0%, #FFB366 50%, #FFC876 100%);
+            border: 3px solid #FF9A56;
+            border-radius: 20px;
+            padding: 16px 20px;
+            position: relative;
+            max-width: 280px;
+            box-shadow: 0 4px 15px rgba(255, 154, 86, 0.25);
+            animation: gentle-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes gentle-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .advice-bubble::before {
+            content: '';
+            position: absolute;
+            left: -12px;
+            top: 25px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 10px 12px 10px 0;
+            border-color: transparent #FF9A56 transparent transparent;
+        }
+
+        .advice-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.4;
+            margin: 0;
+            text-align: left;
+        }
+
+        .advice-loader {
+            display: none;
+            font-style: italic;
+            color: #666;
+        }
+
         .card {
             border-radius: 16px;
             padding: 18px;
@@ -614,6 +677,15 @@
             </div>
         </div>
 
+        <!-- Cat Advice Section -->
+        <div class="cat-advice-section">
+            <img src="images/cat_waving.png" alt="Cat Avatar" class="cat-avatar">
+            <div class="advice-bubble">
+                <p class="advice-text" id="adviceText">Some LLM API generated advice</p>
+                <p class="advice-loader" id="adviceLoader">Generating personalized advice...</p>
+            </div>
+        </div>
+
         <!-- Calories Card (Large) -->
         <div class="card calories">
             <div class="card-header">
@@ -886,6 +958,10 @@
                 console.log('🚨 About to call loadAnalyticsData()...');
                 await this.loadAnalyticsData();
 
+                // Load personalized advice
+                console.log('🚨 About to call loadPersonalizedAdvice()...');
+                await this.loadPersonalizedAdvice();
+
                 // Update cards (preserve black card functionality)
                 this.updateValues();
                 this.updateProgressRings();
@@ -1059,6 +1135,67 @@
                 }
 
                 console.log(`Updated hearts: ${fullHearts} full hearts, ${5 - fullHearts} broken hearts (streak: ${streakDays})`);
+            }
+
+            // Load personalized advice from LLM API
+            async loadPersonalizedAdvice() {
+                console.log('🐱 Loading personalized advice...');
+                const adviceText = document.getElementById('adviceText');
+                const adviceLoader = document.getElementById('adviceLoader');
+
+                if (!adviceText || !adviceLoader) return;
+
+                // Show loader
+                adviceText.style.display = 'none';
+                adviceLoader.style.display = 'block';
+
+                try {
+                    let userId = 'user_123';
+
+                    if (telegramUserId) {
+                        userId = telegramUserId.toString();
+                    } else if (USER_CONFIG && USER_CONFIG.userId) {
+                        userId = USER_CONFIG.userId;
+                    }
+
+                    // Call the advice API endpoint
+                    const response = await fetch(`/api/advice?user_id=${userId}`);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const advice = data.advice || data.message || "Keep up the great work with your nutrition goals!";
+
+                        adviceText.textContent = advice;
+                        console.log('🐱 Advice loaded:', advice);
+                    } else {
+                        // Fallback advice based on user data
+                        const fallbackAdvice = this.getFallbackAdvice();
+                        adviceText.textContent = fallbackAdvice;
+                        console.log('🐱 Using fallback advice');
+                    }
+                } catch (error) {
+                    console.error('🐱 Error loading advice:', error);
+                    const fallbackAdvice = this.getFallbackAdvice();
+                    adviceText.textContent = fallbackAdvice;
+                }
+
+                // Hide loader and show advice
+                adviceLoader.style.display = 'none';
+                adviceText.style.display = 'block';
+            }
+
+            getFallbackAdvice() {
+                const adviceOptions = [
+                    "Keep tracking your meals - you're doing great!",
+                    "Try adding more protein to reach your daily goals.",
+                    "Remember to stay hydrated throughout the day!",
+                    "Small consistent changes lead to big results.",
+                    "Focus on whole foods for better nutrition.",
+                    "You're building healthy habits one meal at a time!",
+                    "Balance is key - enjoy your food journey!",
+                    "Every logged meal is a step toward your goals."
+                ];
+                return adviceOptions[Math.floor(Math.random() * adviceOptions.length)];
             }
 
             // Load analytics data - prioritize today's REAL data over everything
@@ -1402,6 +1539,10 @@
                 console.log('Refreshing nutrition data...');
                 await nutritionTracker.loadUserData();
                 await nutritionTracker.loadAnalyticsData();
+
+                // Refresh personalized advice
+                await nutritionTracker.loadPersonalizedAdvice();
+
                 nutritionTracker.updateValues();
                 nutritionTracker.updateProgressRings();
 
@@ -1417,6 +1558,16 @@
 
         // Manual refresh function (can be called from external sources)
         window.forceRefreshNutritionData = refreshNutritionData;
+
+        // Function to refresh only the cat advice (for /dashboard command)
+        window.refreshAdvice = async function() {
+            console.log('🐱 Refreshing advice only...');
+            if (nutritionTracker && nutritionTracker.loadPersonalizedAdvice) {
+                await nutritionTracker.loadPersonalizedAdvice();
+            } else {
+                console.error('❌ nutritionTracker not available for advice refresh');
+            }
+        };
 
         // Debug function to test historical data API (can be called from browser console)
         window.testHistoricalDataAPI = async function(userId = 'user_123') {
