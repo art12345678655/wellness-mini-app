@@ -31,10 +31,32 @@
 
         .streak-display {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
             gap: 8px;
             margin-bottom: 10px;
+        }
+
+        .hearts-container {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .heart {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .heart:hover {
+            transform: scale(1.1);
+        }
+
+        .streak-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .streak-icon-top {
@@ -576,8 +598,20 @@
     <div class="container">
         <!-- Streak Display (Top Right) -->
         <div class="streak-display">
-            <img src="images/stairs_streak_black.png" alt="Streak" class="streak-icon-top">
-            <span class="streak-number" id="streakValue">0</span>
+            <!-- Hearts container on the left -->
+            <div class="hearts-container">
+                <img src="images/full_heart.png" alt="Heart 1" class="heart" id="heart1">
+                <img src="images/full_heart.png" alt="Heart 2" class="heart" id="heart2">
+                <img src="images/full_heart.png" alt="Heart 3" class="heart" id="heart3">
+                <img src="images/broken_heart.png" alt="Heart 4" class="heart" id="heart4">
+                <img src="images/broken_heart.png" alt="Heart 5" class="heart" id="heart5">
+            </div>
+
+            <!-- Streak display on the right -->
+            <div class="streak-right">
+                <img src="images/stairs_streak_black.png" alt="Streak" class="streak-icon-top">
+                <span class="streak-number" id="streakValue">0</span>
+            </div>
         </div>
 
         <!-- Calories Card (Large) -->
@@ -970,6 +1004,61 @@
                     streakElement.textContent = streakDays;
                     console.log('Updated streak display to:', streakDays);
                 }
+
+                // Update hearts based on streak
+                this.updateHearts(streakDays);
+
+                // Also call global hearts update for consistency
+                if (window.updateHeartsDisplay) {
+                    window.updateHeartsDisplay(streakDays);
+                }
+            }
+
+            updateHearts(streakDays, hasLoggedToday = false) {
+                // Calculate how many full hearts to show based on your requirements:
+                // - Perfect streak (5+ days): 5 full hearts
+                // - Good streak (3-4 days): 5 full hearts
+                // - 1-2 days without logging: reduce hearts accordingly
+                // - 3+ days without logging: all broken
+                // - If user logs a meal today: restore one heart
+
+                let fullHearts = 5; // Default: perfect streak
+
+                if (streakDays === 0) {
+                    // No current streak - check how many days without logging
+                    // For now, assume 3+ days without logging = all broken
+                    fullHearts = 0;
+                } else if (streakDays === 1) {
+                    // 1 day streak - was missing for a while, now back
+                    fullHearts = 3; // 3 full hearts + 2 broken (as shown in your example)
+                } else if (streakDays === 2) {
+                    // 2 day streak - getting better
+                    fullHearts = 4; // 4 full hearts + 1 broken
+                } else if (streakDays >= 3) {
+                    // 3+ day streak = perfect
+                    fullHearts = 5; // All full hearts
+                }
+
+                // If user has logged today, ensure at least one more heart than broken
+                if (hasLoggedToday && fullHearts < 5) {
+                    fullHearts = Math.min(fullHearts + 1, 5);
+                }
+
+                // Update each heart image
+                for (let i = 1; i <= 5; i++) {
+                    const heart = document.getElementById(`heart${i}`);
+                    if (heart) {
+                        if (i <= fullHearts) {
+                            heart.src = 'images/full_heart.png';
+                            heart.alt = `Full Heart ${i}`;
+                        } else {
+                            heart.src = 'images/broken_heart.png';
+                            heart.alt = `Broken Heart ${i}`;
+                        }
+                    }
+                }
+
+                console.log(`Updated hearts: ${fullHearts} full hearts, ${5 - fullHearts} broken hearts (streak: ${streakDays})`);
             }
 
             // Load analytics data - prioritize today's REAL data over everything
@@ -1840,7 +1929,43 @@
         // Add interactive effects for nutrition rings
         document.addEventListener('DOMContentLoaded', () => {
             initAnalyticsChart();
-            
+
+            // Initialize hearts with default state (3 full, 2 broken as shown in example)
+            // Set up a function that can be called from anywhere to update hearts
+            window.updateHeartsDisplay = function(streakDays, hasLoggedToday = false) {
+                let fullHearts = 5;
+
+                if (streakDays === 0) {
+                    fullHearts = 0; // All broken
+                } else if (streakDays === 1) {
+                    fullHearts = 3; // 3 full + 2 broken
+                } else if (streakDays === 2) {
+                    fullHearts = 4; // 4 full + 1 broken
+                } else if (streakDays >= 3) {
+                    fullHearts = 5; // All full
+                }
+
+                if (hasLoggedToday && fullHearts < 5) {
+                    fullHearts = Math.min(fullHearts + 1, 5);
+                }
+
+                for (let i = 1; i <= 5; i++) {
+                    const heart = document.getElementById(`heart${i}`);
+                    if (heart) {
+                        if (i <= fullHearts) {
+                            heart.src = 'images/full_heart.png';
+                            heart.alt = `Full Heart ${i}`;
+                        } else {
+                            heart.src = 'images/broken_heart.png';
+                            heart.alt = `Broken Heart ${i}`;
+                        }
+                    }
+                }
+            };
+
+            // Initialize with example state (streak of 1 = 3 full hearts, 2 broken)
+            window.updateHeartsDisplay(1, false);
+
             document.querySelectorAll('.nutrition-rings').forEach(ring => {
                 ring.addEventListener('mouseenter', () => {
                     ring.style.transform = 'scale(1.1)';
