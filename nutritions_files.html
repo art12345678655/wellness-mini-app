@@ -682,7 +682,7 @@
 
         <!-- Cat Advice Section -->
         <div class="cat-advice-section">
-            <img src="images/cat_waving.png" alt="Cat Avatar" class="cat-avatar">
+            <img src="images/cat_waving.png" alt="Cat Avatar" class="cat-avatar" id="catAvatar">
             <div class="advice-bubble">
                 <p class="advice-text" id="adviceText">Молодец! Продолжай отслеживать питание каждый день.</p>
                 <p class="advice-loader" id="adviceLoader">Генерирую совет...</p>
@@ -1137,7 +1137,37 @@
                     }
                 }
 
+                // Update cat image based on heart status
+                this.updateCatImage(fullHearts);
+
                 console.log(`Updated hearts: ${fullHearts} full hearts, ${5 - fullHearts} broken hearts (streak: ${streakDays})`);
+            }
+
+            updateCatImage(fullHearts) {
+                const catAvatar = document.getElementById('catAvatar');
+                if (!catAvatar) return;
+
+                let catImage = 'images/cat_waving.png'; // Default for 5 full hearts
+
+                if (fullHearts === 0) {
+                    // All hearts broken - show sad cat
+                    catImage = 'images/cat_3.png';
+                } else if (fullHearts === 1) {
+                    // 1 full heart (2 days missed) - show concerned cat
+                    catImage = 'images/cat_2.png';
+                } else if (fullHearts === 3) {
+                    // 3 full hearts (1 day missed) - show encouraging cat
+                    catImage = 'images/cat_1.png';
+                } else if (fullHearts >= 5) {
+                    // All hearts full - show happy waving cat
+                    catImage = 'images/cat_waving.png';
+                } else {
+                    // 4 full hearts or other states - use default waving cat
+                    catImage = 'images/cat_waving.png';
+                }
+
+                catAvatar.src = catImage;
+                console.log(`Updated cat image to: ${catImage} (${fullHearts} full hearts)`);
             }
 
             // Load personalized advice using fast OpenAI model with nutrition data
@@ -2168,6 +2198,7 @@
                     fullHearts = Math.min(fullHearts + 1, 5);
                 }
 
+                // Update hearts
                 for (let i = 1; i <= 5; i++) {
                     const heart = document.getElementById(`heart${i}`);
                     if (heart) {
@@ -2180,6 +2211,32 @@
                         }
                     }
                 }
+
+                // Update cat image
+                window.updateCatImageGlobal(fullHearts);
+            };
+
+            // Global function to update cat image
+            window.updateCatImageGlobal = function(fullHearts) {
+                const catAvatar = document.getElementById('catAvatar');
+                if (!catAvatar) return;
+
+                let catImage = 'images/cat_waving.png'; // Default
+
+                if (fullHearts === 0) {
+                    catImage = 'images/cat_3.png'; // All hearts broken - sad cat
+                } else if (fullHearts === 1) {
+                    catImage = 'images/cat_2.png'; // 1 full heart - concerned cat
+                } else if (fullHearts === 3) {
+                    catImage = 'images/cat_1.png'; // 3 full hearts - encouraging cat
+                } else if (fullHearts >= 5) {
+                    catImage = 'images/cat_waving.png'; // All hearts full - happy cat
+                } else {
+                    catImage = 'images/cat_waving.png'; // Default for other states
+                }
+
+                catAvatar.src = catImage;
+                console.log(`Global: Updated cat image to: ${catImage} (${fullHearts} full hearts)`);
             };
 
             // Initialize with example state (streak of 1 = 3 full hearts, 2 broken)
