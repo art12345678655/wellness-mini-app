@@ -74,16 +74,18 @@
         /* Cat Advice Section */
         .cat-advice-section {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 15px;
             margin: 20px 0;
             position: relative;
+            min-height: 120px;
         }
 
         .cat-avatar {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 120px;
             flex-shrink: 0;
+            object-fit: contain;
             transition: transform 0.3s ease;
         }
 
@@ -111,7 +113,8 @@
             content: '';
             position: absolute;
             left: -12px;
-            top: 25px;
+            top: 50%;
+            transform: translateY(-50%);
             width: 0;
             height: 0;
             border-style: solid;
