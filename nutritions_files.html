@@ -75,7 +75,7 @@
         .conversation-area {
             display: flex;
             flex-direction: row;
-            align-items: center;
+            align-items: flex-start;
             gap: 15px;
             margin: 20px 0;
             position: relative;
@@ -94,10 +94,12 @@
 
         .speech-bubble-container {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-start;
             flex-basis: 70%;
             width: 70%;
             flex-grow: 1;
+            gap: 15px;
         }
 
         /* Action Buttons Section (Full Width Below Conversation) */
@@ -796,26 +798,25 @@
             </div>
         </div>
 
-        <!-- Conversation Area (Cat + Speech Bubble) -->
+        <!-- Conversation Area (Cat + Speech Bubble + Buttons) -->
         <div class="conversation-area">
             <!-- Cat Container (Left) -->
             <div class="cat-container">
                 <img src="images/cat_waving.png" alt="Cat Avatar" class="cat-avatar" id="catAvatar">
             </div>
 
-            <!-- Speech Bubble Container (Right) -->
+            <!-- Speech Bubble and Buttons Container (Right) -->
             <div class="speech-bubble-container">
                 <div class="advice-bubble">
                     <p class="advice-text" id="adviceText">Молодец! Продолжай отслеживать питание каждый день.</p>
                     <p class="advice-loader" id="adviceLoader">Генерирую совет...</p>
                 </div>
+                <!-- Action Buttons (Below Speech Bubble) -->
+                <div class="action-buttons-section">
+                    <a href="https://lavka.yandex.ru/" class="action-bubble blue" id="getFoodBubble">Get meal</a>
+                    <div class="action-bubble black" id="doSportsBubble">Do Sport</div>
+                </div>
             </div>
-        </div>
-
-        <!-- Action Buttons (Below Conversation) -->
-        <div class="action-buttons-section">
-            <a href="https://lavka.yandex.ru/" class="action-bubble blue" id="getFoodBubble">Get meal</a>
-            <div class="action-bubble black" id="doSportsBubble">Do Sport</div>
         </div>
 
         <!-- Calories Card (Large) -->
