@@ -635,6 +635,71 @@
                 padding: 10px 14px;
             }
         }
+
+        /* Action Bubbles Styles */
+        .action-bubbles-container {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        .action-bubble {
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            user-select: none;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .action-bubble:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-bubble:active {
+            transform: translateY(0);
+        }
+
+        .action-bubble.blue {
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            border: 2px solid #357ABD;
+        }
+
+        .action-bubble.blue:hover {
+            background: linear-gradient(135deg, #357ABD 0%, #2A6BA0 100%);
+        }
+
+        .action-bubble.black {
+            background: linear-gradient(135deg, #333333 0%, #1a1a1a 100%);
+            border: 2px solid #333333;
+        }
+
+        .action-bubble.black:hover {
+            background: linear-gradient(135deg, #444444 0%, #2a2a2a 100%);
+        }
+
+        /* Mobile adjustments for action bubbles */
+        @media (max-width: 480px) {
+            .action-bubbles-container {
+                flex-direction: column;
+                gap: 10px;
+                margin: 15px 0;
+            }
+
+            .action-bubble {
+                font-size: 14px;
+                padding: 10px 16px;
+                min-width: auto;
+            }
+        }
     </style>
 
     <!-- Telegram WebApp Script -->
@@ -687,6 +752,12 @@
                 <p class="advice-text" id="adviceText">Молодец! Продолжай отслеживать питание каждый день.</p>
                 <p class="advice-loader" id="adviceLoader">Генерирую совет...</p>
             </div>
+        </div>
+
+        <!-- Action Bubbles -->
+        <div class="action-bubbles-container">
+            <a href="https://lavka.yandex.ru/" class="action-bubble blue" id="getFoodBubble">Get Food</a>
+            <div class="action-bubble black" id="doSportsBubble">Do Sports</div>
         </div>
 
         <!-- Calories Card (Large) -->
@@ -2298,6 +2369,59 @@
 
         window.addEventListener('resize', () => {
             plotLines();
+        });
+
+        // Action Bubbles Functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Do Sports bubble - smooth scroll to Sports text
+            const doSportsBubble = document.getElementById('doSportsBubble');
+            if (doSportsBubble) {
+                doSportsBubble.addEventListener('click', () => {
+                    // Find the Sports text element
+                    const sportsText = document.querySelector('div[style*="Sports"]');
+                    if (sportsText) {
+                        sportsText.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+
+                        // Add a subtle highlight effect
+                        sportsText.style.transition = 'all 0.3s ease';
+                        sportsText.style.transform = 'scale(1.1)';
+                        sportsText.style.color = '#4A90E2';
+
+                        setTimeout(() => {
+                            sportsText.style.transform = 'scale(1)';
+                            sportsText.style.color = 'black';
+                        }, 1000);
+                    }
+                });
+            }
+
+            // Get Food bubble - enhanced for Telegram WebApp
+            const getFoodBubble = document.getElementById('getFoodBubble');
+            if (getFoodBubble) {
+                getFoodBubble.addEventListener('click', (e) => {
+                    // Check if we're in Telegram WebApp
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        e.preventDefault();
+                        // Try to open Yandex Lavka app first, fallback to web
+                        const deeplinks = [
+                            'yandexlavka://',
+                            'https://lavka.yandex.ru/'
+                        ];
+
+                        // Try app deeplink first
+                        window.Telegram.WebApp.openLink(deeplinks[0]);
+
+                        // Fallback to web after short delay if app doesn't open
+                        setTimeout(() => {
+                            window.Telegram.WebApp.openLink(deeplinks[1]);
+                        }, 1000);
+                    }
+                    // For regular browsers, the href will work normally
+                });
+            }
         });
     </script>
 </body>
