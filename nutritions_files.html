@@ -71,21 +71,39 @@
             color: #1a1a1a;
         }
 
-        /* Simple Layout Container */
+        /* Simple Layout Container - FORCE HORIZONTAL */
         .layout-container {
-            display: flex;
-            align-items: center;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
             gap: 15px;
             margin: 20px 0;
-            width: 100%;
+            width: 100% !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Cat Avatar - FORCE FIXED SIZE */
+        .layout-container .cat-avatar {
+            width: 120px !important;
+            height: 240px !important;
+            flex-shrink: 0 !important;
         }
 
         /* Right Side Container */
         .right-side {
-            display: flex;
-            flex-direction: column;
+            display: flex !important;
+            flex-direction: column !important;
             gap: 15px;
-            flex: 1;
+            flex: 1 !important;
+            max-width: calc(100% - 135px);
+        }
+
+        /* Force Override Parent Container Column Layout */
+        .container .layout-container {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
         }
 
         /* Button Row */
