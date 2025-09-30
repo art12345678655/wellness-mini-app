@@ -639,14 +639,15 @@
         /* Action Bubbles Styles */
         .action-bubbles-container {
             display: flex;
+            flex-direction: column;
             gap: 12px;
-            margin: 20px 0 20px 135px;
-            justify-content: flex-start;
+            margin: 20px 0;
+            width: 100%;
         }
 
         .action-bubble {
-            padding: 12px 20px;
-            border-radius: 20px;
+            padding: 16px 20px;
+            border-radius: 25px;
             font-size: 16px;
             font-weight: 600;
             text-decoration: none;
@@ -656,7 +657,8 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             user-select: none;
             text-align: center;
-            min-width: 120px;
+            width: 100%;
+            display: block;
         }
 
         .action-bubble:hover {
@@ -689,16 +691,14 @@
         /* Mobile adjustments for action bubbles */
         @media (max-width: 480px) {
             .action-bubbles-container {
-                flex-direction: column;
                 gap: 10px;
                 margin: 15px 0;
-                justify-content: center;
             }
 
             .action-bubble {
-                font-size: 14px;
-                padding: 10px 16px;
-                min-width: auto;
+                font-size: 15px;
+                padding: 14px 20px;
+                border-radius: 22px;
             }
         }
     </style>
