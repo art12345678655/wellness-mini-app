@@ -71,8 +71,8 @@
             color: #1a1a1a;
         }
 
-        /* Cat Advice Section */
-        .cat-advice-section {
+        /* Cat and Bubbles Section */
+        .cat-bubbles-section {
             display: flex;
             align-items: flex-start;
             gap: 15px;
@@ -81,12 +81,17 @@
             min-height: 240px;
         }
 
-        .advice-and-bubbles-container {
+        .cat-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bubbles-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
             flex: 1;
-            margin-top: 0;
         }
 
         .cat-avatar {
@@ -701,13 +706,13 @@
 
         /* Mobile adjustments for action bubbles */
         @media (max-width: 480px) {
-            .cat-advice-section {
+            .cat-bubbles-section {
                 flex-direction: column;
                 align-items: center;
                 gap: 15px;
             }
 
-            .advice-and-bubbles-container {
+            .bubbles-container {
                 width: 100%;
             }
 
@@ -767,10 +772,15 @@
             </div>
         </div>
 
-        <!-- Cat Advice Section -->
-        <div class="cat-advice-section">
-            <img src="images/cat_waving.png" alt="Cat Avatar" class="cat-avatar" id="catAvatar">
-            <div class="advice-and-bubbles-container">
+        <!-- Cat and Bubbles Section -->
+        <div class="cat-bubbles-section">
+            <!-- Cat Container (Left) -->
+            <div class="cat-container">
+                <img src="images/cat_waving.png" alt="Cat Avatar" class="cat-avatar" id="catAvatar">
+            </div>
+
+            <!-- Bubbles Container (Right) -->
+            <div class="bubbles-container">
                 <div class="advice-bubble">
                     <p class="advice-text" id="adviceText">Молодец! Продолжай отслеживать питание каждый день.</p>
                     <p class="advice-loader" id="adviceLoader">Генерирую совет...</p>
