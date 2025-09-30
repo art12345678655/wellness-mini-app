@@ -71,40 +71,32 @@
             color: #1a1a1a;
         }
 
-        /* Main Layout: Two Containers Side by Side */
-        .main-layout {
+        /* Cat and Speech Bubble Row (Horizontal) */
+        .cat-speech-row {
             display: flex;
             flex-direction: row;
-            align-items: flex-start;
+            align-items: center;
             gap: 15px;
             margin: 20px 0;
             width: 100%;
         }
 
-        /* Left Container: Cat Only */
-        .left-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-basis: 30%;
-            width: 30%;
+        /* Cat Container */
+        .cat-container {
             flex-shrink: 0;
         }
 
-        /* Right Container: Speech Bubble + Buttons */
-        .right-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            flex-basis: 70%;
-            width: 70%;
+        /* Speech Bubble Container */
+        .speech-container {
             flex-grow: 1;
         }
 
-        /* Buttons Container */
-        .buttons-container {
+        /* Buttons Section (Below, Centered) */
+        .buttons-section {
             display: flex;
             gap: 12px;
+            justify-content: center;
+            margin: 0 0 20px 0;
             width: 100%;
         }
 
@@ -666,7 +658,7 @@
         }
 
         /* Action Bubbles Styles (Updated for new structure) */
-        .buttons-container .action-bubble {
+        .buttons-section .action-bubble {
             flex: 1;
             max-width: 200px;
         }
@@ -716,23 +708,13 @@
 
         /* Mobile adjustments for new layout */
         @media (max-width: 480px) {
-            .main-layout {
+            .cat-speech-row {
                 flex-direction: column;
                 align-items: center;
                 gap: 15px;
             }
 
-            .left-container {
-                order: 1;
-                width: 100%;
-            }
-
-            .right-container {
-                order: 2;
-                width: 100%;
-            }
-
-            .buttons-container {
+            .buttons-section {
                 flex-direction: column;
                 gap: 10px;
                 align-items: center;
@@ -796,27 +778,26 @@
             </div>
         </div>
 
-        <!-- Main Layout: Cat Left, Everything Else Right -->
-        <div class="main-layout">
-            <!-- Left Container: Cat Only -->
-            <div class="left-container">
+        <!-- Cat and Speech Bubble Row -->
+        <div class="cat-speech-row">
+            <!-- Cat (Left) -->
+            <div class="cat-container">
                 <img src="images/cat_waving.png" alt="Cat Avatar" class="cat-avatar" id="catAvatar">
             </div>
 
-            <!-- Right Container: Speech Bubble + Buttons -->
-            <div class="right-container">
-                <!-- Speech Bubble -->
+            <!-- Speech Bubble (Right) -->
+            <div class="speech-container">
                 <div class="advice-bubble">
                     <p class="advice-text" id="adviceText">Молодец! Продолжай отслеживать питание каждый день.</p>
                     <p class="advice-loader" id="adviceLoader">Генерирую совет...</p>
                 </div>
-
-                <!-- Action Buttons -->
-                <div class="buttons-container">
-                    <a href="https://lavka.yandex.ru/" class="action-bubble blue" id="getFoodBubble">Get meal</a>
-                    <div class="action-bubble black" id="doSportsBubble">Do Sport</div>
-                </div>
             </div>
+        </div>
+
+        <!-- Action Buttons Below -->
+        <div class="buttons-section">
+            <a href="https://lavka.yandex.ru/" class="action-bubble blue" id="getFoodBubble">Get meal</a>
+            <div class="action-bubble black" id="doSportsBubble">Do Sport</div>
         </div>
 
         <!-- Calories Card (Large) -->
