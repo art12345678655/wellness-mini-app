@@ -71,27 +71,36 @@
             color: #1a1a1a;
         }
 
-        /* Cat and Bubbles Section */
-        .cat-bubbles-section {
+        /* Conversation Area (Chat Interface) */
+        .conversation-area {
             display: flex;
             align-items: flex-start;
             gap: 15px;
             margin: 20px 0;
             position: relative;
-            min-height: 240px;
+            min-height: 180px;
         }
 
         .cat-container {
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
-        .bubbles-container {
+        .speech-bubble-container {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            align-items: center;
             flex: 1;
+        }
+
+        /* Action Buttons Section (Below Conversation) */
+        .action-buttons-section {
+            display: flex;
+            gap: 12px;
+            margin: 0 0 20px 0;
+            width: 100%;
+            justify-content: center;
         }
 
         .cat-avatar {
@@ -651,14 +660,10 @@
             }
         }
 
-        /* Action Bubbles Styles */
-        .action-bubbles-container {
-            display: flex;
-            gap: 12px;
-            margin: 0;
-            width: 100%;
-            max-width: 280px;
-            justify-content: flex-start;
+        /* Action Bubbles Styles (Updated for new structure) */
+        .action-buttons-section .action-bubble {
+            flex: 1;
+            max-width: 200px;
         }
 
         .action-bubble {
@@ -704,27 +709,41 @@
             background: linear-gradient(135deg, #444444 0%, #2a2a2a 100%);
         }
 
-        /* Mobile adjustments for action bubbles */
+        /* Mobile adjustments for new chat layout */
         @media (max-width: 480px) {
-            .cat-bubbles-section {
+            .conversation-area {
                 flex-direction: column;
                 align-items: center;
                 gap: 15px;
+                min-height: auto;
             }
 
-            .bubbles-container {
+            .cat-container {
+                order: 1;
+            }
+
+            .speech-bubble-container {
+                order: 2;
                 width: 100%;
             }
 
-            .action-bubbles-container {
+            .action-buttons-section {
+                flex-direction: column;
                 gap: 10px;
+                align-items: center;
             }
 
             .action-bubble {
                 font-size: 14px;
                 padding: 12px 16px;
                 border-radius: 18px;
-                min-width: 100px;
+                min-width: 150px;
+                max-width: 250px;
+            }
+
+            .cat-avatar {
+                width: 100px;
+                height: 200px;
             }
         }
     </style>
@@ -772,25 +791,26 @@
             </div>
         </div>
 
-        <!-- Cat and Bubbles Section -->
-        <div class="cat-bubbles-section">
+        <!-- Conversation Area (Cat + Speech Bubble) -->
+        <div class="conversation-area">
             <!-- Cat Container (Left) -->
             <div class="cat-container">
                 <img src="images/cat_waving.png" alt="Cat Avatar" class="cat-avatar" id="catAvatar">
             </div>
 
-            <!-- Bubbles Container (Right) -->
-            <div class="bubbles-container">
+            <!-- Speech Bubble Container (Right) -->
+            <div class="speech-bubble-container">
                 <div class="advice-bubble">
                     <p class="advice-text" id="adviceText">Молодец! Продолжай отслеживать питание каждый день.</p>
                     <p class="advice-loader" id="adviceLoader">Генерирую совет...</p>
                 </div>
-                <!-- Action Bubbles -->
-                <div class="action-bubbles-container">
-                    <a href="https://lavka.yandex.ru/" class="action-bubble blue" id="getFoodBubble">Get meal</a>
-                    <div class="action-bubble black" id="doSportsBubble">Do Sport</div>
-                </div>
             </div>
+        </div>
+
+        <!-- Action Buttons (Below Conversation) -->
+        <div class="action-buttons-section">
+            <a href="https://lavka.yandex.ru/" class="action-bubble blue" id="getFoodBubble">Get meal</a>
+            <div class="action-bubble black" id="doSportsBubble">Do Sport</div>
         </div>
 
         <!-- Calories Card (Large) -->
