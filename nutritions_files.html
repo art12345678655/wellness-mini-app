@@ -2468,17 +2468,29 @@
 
         // Action Bubbles Functionality
         document.addEventListener('DOMContentLoaded', () => {
-            // Do Sports bubble - smooth scroll to Sports text
+            // Do Sports bubble - smooth scroll to Sports text (mobile compatible)
             const doSportsBubble = document.getElementById('doSportsBubble');
             if (doSportsBubble) {
-                doSportsBubble.addEventListener('click', () => {
+                doSportsBubble.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent any default behavior
+
                     // Find the Sports text element
                     const sportsText = document.querySelector('div[style*="Sports"]');
                     if (sportsText) {
-                        sportsText.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center'
-                        });
+                        console.log('Scrolling to Sports section');
+
+                        // Try modern smooth scroll first
+                        try {
+                            sportsText.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center',
+                                inline: 'nearest'
+                            });
+                        } catch (error) {
+                            // Fallback for older mobile browsers
+                            console.log('Using fallback scroll method');
+                            sportsText.scrollIntoView();
+                        }
 
                         // Add a subtle highlight effect
                         sportsText.style.transition = 'all 0.3s ease';
@@ -2489,11 +2501,13 @@
                             sportsText.style.transform = 'scale(1)';
                             sportsText.style.color = 'black';
                         }, 1000);
+                    } else {
+                        console.log('Sports text element not found');
                     }
                 });
             }
 
-            // Get Food bubble - enhanced for Telegram WebApp
+            // Get Food bubble - works on both Telegram WebApp and regular browsers
             const getFoodBubble = document.getElementById('getFoodBubble');
             if (getFoodBubble) {
                 getFoodBubble.addEventListener('click', (e) => {
@@ -2501,20 +2515,12 @@
                     if (window.Telegram && window.Telegram.WebApp) {
                         e.preventDefault();
                         // Try to open Yandex Lavka app first, fallback to web
-                        const deeplinks = [
-                            'yandexlavka://',
-                            'https://lavka.yandex.ru/'
-                        ];
-
-                        // Try app deeplink first
-                        window.Telegram.WebApp.openLink(deeplinks[0]);
-
-                        // Fallback to web after short delay if app doesn't open
-                        setTimeout(() => {
-                            window.Telegram.WebApp.openLink(deeplinks[1]);
-                        }, 1000);
+                        window.Telegram.WebApp.openLink('https://lavka.yandex.ru/');
+                    } else {
+                        // For regular phones/browsers - let the normal href link work
+                        // The <a href="https://lavka.yandex.ru/"> will handle this automatically
+                        console.log('Opening Yandex Lavka on regular browser');
                     }
-                    // For regular browsers, the href will work normally
                 });
             }
         });
