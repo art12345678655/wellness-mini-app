@@ -721,6 +721,43 @@
             background: linear-gradient(135deg, #444444 0%, #2a2a2a 100%);
         }
 
+        /* Sports Tile Styles */
+        .sports-tile {
+            width: 120px;
+            height: 120px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px auto;
+            box-shadow:
+                0 8px 25px rgba(0, 0, 0, 0.3),
+                0 4px 15px rgba(0, 0, 0, 0.2),
+                inset 0 1px 3px rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .sports-tile::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.1));
+            border-radius: 23px;
+            z-index: -1;
+            filter: blur(6px);
+        }
+
+        .sports-image {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            border-radius: 15px;
+        }
+
         /* Mobile adjustments for new layout */
         @media (max-width: 480px) {
             .layout-container {
@@ -1020,6 +1057,11 @@
 
         <!-- Sports Text -->
         <div style="text-align: center; color: black; font-size: 24px; font-weight: 600; font-style: italic; margin-top: 15px;">Sports</div>
+
+        <!-- Sports Tile -->
+        <div class="sports-tile">
+            <img src="images/runagent.png" alt="Sports" class="sports-image">
+        </div>
     </div>
 
     <script>
