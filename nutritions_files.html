@@ -1200,100 +1200,139 @@
 
             async generateNutritionAdvice() {
                 try {
-                    // Get current nutrition data for context
+                    // Get current nutrition data from the actual user data
                     const nutritionContext = this.buildAdviceContext();
 
-                    // Call OpenAI API with fast model
-                    const response = await fetch('/api/openai-advice', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            nutrition_data: nutritionContext,
-                            model: 'gpt-3.5-turbo', // Fast model
-                            max_tokens: 60, // Keep it short for quick response
-                            temperature: 0.7
-                        })
-                    });
+                    console.log('🐱 Nutrition context for advice:', nutritionContext);
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        return data.advice || this.getFallbackAdvice();
-                    } else {
-                        console.log('🐱 OpenAI API not available, using fallback');
-                        return this.getFallbackAdvice();
+                    // Create prompt for OpenAI
+                    const prompt = this.buildAdvicePrompt(nutritionContext);
+
+                    // Try OpenAI API first
+                    const openaiAdvice = await this.callOpenAIForAdvice(prompt);
+                    if (openaiAdvice) {
+                        return openaiAdvice;
                     }
+
+                    // Fallback to data-driven advice
+                    return this.getFallbackAdvice();
                 } catch (error) {
                     console.error('🐱 Error generating advice:', error);
                     return this.getFallbackAdvice();
                 }
             }
 
+            async callOpenAIForAdvice(prompt) {
+                try {
+                    // Use a hypothetical endpoint that would integrate with the wellness bot
+                    // This should be implemented on the server side to call OpenAI
+                    const response = await fetch('/api/generate-advice', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            prompt: prompt,
+                            model: 'gpt-3.5-turbo', // Fast and cheap
+                            max_tokens: 50,
+                            temperature: 0.8
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.advice || data.message || null;
+                    }
+
+                    console.log('🐱 OpenAI API endpoint not available');
+                    return null;
+                } catch (error) {
+                    console.error('🐱 OpenAI API call failed:', error);
+                    return null;
+                }
+            }
+
+            buildAdvicePrompt(nutritionContext) {
+                const { protein_left, calories_left, protein_percent, calorie_percent, protein_goal, calorie_goal } = nutritionContext;
+
+                return `Ты кот-нутрициолог. Дай короткий совет на русском (максимум 15 слов).
+
+Данные пользователя сегодня:
+- Белок: осталось ${protein_left}г из ${protein_goal}г (съедено ${protein_percent}%)
+- Калории: осталось ${calories_left} из ${calorie_goal} ккал (съедено ${calorie_percent}%)
+
+Формат ответа: [ободрение] + [конкретный совет]
+Примеры:
+- "Отлично! Добавь ещё 30г белка до цели"
+- "Молодец! Осталось 500 ккал"
+- "Супер! Почти достиг нормы белка"
+
+Ответ:`;
+            }
+
             buildAdviceContext() {
-                // Use current user data if available
-                const consumed = this.userData?.consumed || {};
+                // Get actual current data from the displayed values
+                const caloriesElement = document.getElementById('caloriesValue');
+                const proteinElement = document.getElementById('proteinValue');
+
+                // Parse current displayed values (these are the "left" values)
+                const caloriesLeft = caloriesElement ? parseInt(caloriesElement.textContent) || 0 : 0;
+                const proteinLeft = proteinElement ? parseInt(proteinElement.textContent) || 0 : 0;
+
+                // Get targets from user data
                 const goals = this.userData?.goals || {};
-
-                const calories = consumed.kcal || 0;
-                const protein = consumed.protein_g || 0;
-                const carbs = consumed.carbs_g || 0;
-                const fat = consumed.fat_g || 0;
-
                 const calorieGoal = goals.kcal_target || 2000;
                 const proteinGoal = goals.protein_target_g || 150;
-                const carbGoal = goals.carbs_target_g || 250;
-                const fatGoal = goals.fat_target_g || 65;
 
-                const proteinPercent = Math.round((protein / proteinGoal) * 100);
-                const caloriePercent = Math.round((calories / calorieGoal) * 100);
+                // Calculate consumed (goal - left = consumed)
+                const caloriesConsumed = Math.max(0, calorieGoal - caloriesLeft);
+                const proteinConsumed = Math.max(0, proteinGoal - proteinLeft);
+
+                // Calculate percentages
+                const proteinPercent = Math.round((proteinConsumed / proteinGoal) * 100);
+                const caloriePercent = Math.round((caloriesConsumed / calorieGoal) * 100);
+
+                console.log('🐱 Advice context data:', {
+                    caloriesLeft,
+                    proteinLeft,
+                    calorieGoal,
+                    proteinGoal,
+                    caloriesConsumed,
+                    proteinConsumed
+                });
 
                 return {
-                    calories: calories,
-                    protein: protein,
-                    carbs: carbs,
-                    fat: fat,
+                    calories: caloriesConsumed,
+                    protein: proteinConsumed,
+                    calories_left: caloriesLeft,
+                    protein_left: proteinLeft,
                     calorie_goal: calorieGoal,
                     protein_goal: proteinGoal,
                     protein_percent: proteinPercent,
                     calorie_percent: caloriePercent,
-                    protein_deficit: Math.max(0, proteinGoal - protein),
-                    calorie_deficit: Math.max(0, calorieGoal - calories)
+                    protein_deficit: Math.max(0, proteinLeft), // How much protein is still needed
+                    calorie_deficit: Math.max(0, caloriesLeft) // How many calories are still needed
                 };
             }
 
             getFallbackAdvice() {
-                // Get current nutrition data for context-aware fallback
-                const consumed = this.userData?.consumed || {};
-                const goals = this.userData?.goals || {};
+                // Generic health advice in Russian - no specific numbers
+                const genericAdvice = [
+                    "Молодец! Не забывай про физические упражнения.",
+                    "Отлично! Добавь больше клетчатки в рацион.",
+                    "Супер! Помни про воду - пей больше жидкости.",
+                    "Хорошо! Включи больше овощей в питание.",
+                    "Здорово! Не забывай про здоровый сон.",
+                    "Молодец! Попробуй добавить омега-3 в рацион.",
+                    "Отлично! Сократи сахар и добавь белка.",
+                    "Супер! Делай небольшие перерывы для активности.",
+                    "Хорошо! Ешь медленнее и наслаждайся пищей.",
+                    "Здорово! Планируй приёмы пищи заранее.",
+                    "Молодец! Добавь разнообразия в меню.",
+                    "Отлично! Не пропускай завтрак - это важно!"
+                ];
 
-                const protein = consumed.protein_g || 0;
-                const calories = consumed.kcal || 0;
-                const proteinGoal = goals.protein_target_g || 150;
-                const calorieGoal = goals.kcal_target || 2000;
-
-                const proteinPercent = (protein / proteinGoal) * 100;
-                const caloriePercent = (calories / calorieGoal) * 100;
-
-                // Data-driven Russian advice
-                if (proteinPercent < 30) {
-                    return `Отлично! Добавь больше белка - осталось ${Math.round(proteinGoal - protein)}г до нормы.`;
-                } else if (proteinPercent < 70) {
-                    return `Хорошо идёшь! Ещё ${Math.round(proteinGoal - protein)}г белка и цель достигнута.`;
-                } else if (caloriePercent < 50) {
-                    return `Супер! Не забывай про калории - осталось ${Math.round(calorieGoal - calories)} ккал.`;
-                } else if (proteinPercent > 100) {
-                    return "Отлично! Белковая норма выполнена. Продолжай в том же духе!";
-                } else {
-                    const randomAdvice = [
-                        "Молодец! Продолжай отслеживать питание каждый день.",
-                        "Хорошо! Баланс белков, жиров и углеводов - ключ к успеху.",
-                        "Отлично! Каждый приём пищи приближает к цели.",
-                        "Супер! Помни про воду - она тоже важна.",
-                        "Здорово! Правильное питание - это привычка на всю жизнь."
-                    ];
-                    return randomAdvice[Math.floor(Math.random() * randomAdvice.length)];
-                }
+                return genericAdvice[Math.floor(Math.random() * genericAdvice.length)];
             }
 
             // Load analytics data - prioritize today's REAL data over everything
