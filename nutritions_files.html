@@ -74,11 +74,18 @@
         /* Cat Advice Section */
         .cat-advice-section {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 15px;
             margin: 20px 0;
             position: relative;
             min-height: 240px;
+        }
+
+        .advice-and-bubbles-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
         }
 
         .cat-avatar {
@@ -639,15 +646,15 @@
         /* Action Bubbles Styles */
         .action-bubbles-container {
             display: flex;
-            flex-direction: column;
             gap: 12px;
-            margin: 20px 0;
+            margin: 0;
             width: 100%;
+            justify-content: flex-start;
         }
 
         .action-bubble {
-            padding: 16px 20px;
-            border-radius: 25px;
+            padding: 12px 20px;
+            border-radius: 20px;
             font-size: 16px;
             font-weight: 600;
             text-decoration: none;
@@ -657,8 +664,8 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             user-select: none;
             text-align: center;
-            width: 100%;
-            display: block;
+            min-width: 120px;
+            flex: 1;
         }
 
         .action-bubble:hover {
@@ -690,15 +697,25 @@
 
         /* Mobile adjustments for action bubbles */
         @media (max-width: 480px) {
+            .cat-advice-section {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .advice-and-bubbles-container {
+                width: 100%;
+            }
+
             .action-bubbles-container {
                 gap: 10px;
-                margin: 15px 0;
             }
 
             .action-bubble {
-                font-size: 15px;
-                padding: 14px 20px;
-                border-radius: 22px;
+                font-size: 14px;
+                padding: 12px 16px;
+                border-radius: 18px;
+                min-width: 100px;
             }
         }
     </style>
@@ -749,16 +766,17 @@
         <!-- Cat Advice Section -->
         <div class="cat-advice-section">
             <img src="images/cat_waving.png" alt="Cat Avatar" class="cat-avatar" id="catAvatar">
-            <div class="advice-bubble">
-                <p class="advice-text" id="adviceText">Молодец! Продолжай отслеживать питание каждый день.</p>
-                <p class="advice-loader" id="adviceLoader">Генерирую совет...</p>
+            <div class="advice-and-bubbles-container">
+                <div class="advice-bubble">
+                    <p class="advice-text" id="adviceText">Молодец! Продолжай отслеживать питание каждый день.</p>
+                    <p class="advice-loader" id="adviceLoader">Генерирую совет...</p>
+                </div>
+                <!-- Action Bubbles -->
+                <div class="action-bubbles-container">
+                    <a href="https://lavka.yandex.ru/" class="action-bubble blue" id="getFoodBubble">Get meal</a>
+                    <div class="action-bubble black" id="doSportsBubble">Do Sport</div>
+                </div>
             </div>
-        </div>
-
-        <!-- Action Bubbles -->
-        <div class="action-bubbles-container">
-            <a href="https://lavka.yandex.ru/" class="action-bubble blue" id="getFoodBubble">Get meal</a>
-            <div class="action-bubble black" id="doSportsBubble">Do Sport</div>
         </div>
 
         <!-- Calories Card (Large) -->
