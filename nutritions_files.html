@@ -74,7 +74,7 @@
         /* Cat Advice Section */
         .cat-advice-section {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 15px;
             margin: 20px 0;
             position: relative;
@@ -86,7 +86,7 @@
             flex-direction: column;
             gap: 15px;
             flex: 1;
-            align-items: flex-start;
+            margin-top: 0;
         }
 
         .cat-avatar {
@@ -111,6 +111,7 @@
             max-width: 280px;
             box-shadow: 0 4px 15px rgba(255, 154, 86, 0.25);
             animation: gentle-pulse 3s ease-in-out infinite;
+            margin-bottom: 0;
         }
 
         @keyframes gentle-pulse {
@@ -651,6 +652,7 @@
             gap: 12px;
             margin: 0;
             width: 100%;
+            max-width: 280px;
             justify-content: flex-start;
         }
 
