@@ -1214,12 +1214,13 @@
                 if (!userId || userId === 'user_123') {
                     console.log('🔥 Invalid userId, skipping streak load');
                     this.updateStreakDisplay(0);
+                    this.updateHearts(0);
                     return;
                 }
 
                 try {
                     const apiUrl = `/api/streak-data?user_id=${userId}`;
-                    console.log('🔥 Fetching streak from:', apiUrl);
+                    console.log('🔥 Fetching streak data from:', apiUrl);
 
                     const response = await fetch(apiUrl, {
                         method: 'GET',
@@ -1232,17 +1233,27 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        console.log('🔥 Current streak data received:', data);
+                        console.log('🔥 Streak data received:', data);
+
                         const currentStreak = data.current_streak || 0;
+                        const daysSinceLastLog = data.days_since_last_meal_log || 0;
+
+                        // Update streak number display (top right)
                         this.updateStreakDisplay(currentStreak);
-                        console.log('🔥 Current streak updated to:', currentStreak);
+
+                        // Update hearts and cat based on days since last log
+                        this.updateHearts(daysSinceLastLog);
+
+                        console.log(`🔥 Updated - Streak: ${currentStreak}, Days since last log: ${daysSinceLastLog}`);
                     } else {
                         console.error('🔥 API error, status:', response.status);
                         this.updateStreakDisplay(0);
+                        this.updateHearts(0);
                     }
                 } catch (error) {
                     console.error('🔥 Network error:', error);
                     this.updateStreakDisplay(0);
+                    this.updateHearts(0);
                 }
             }
 
@@ -1251,14 +1262,6 @@
                 if (streakElement) {
                     streakElement.textContent = currentStreak;
                     console.log('Updated current streak display to:', currentStreak);
-                }
-
-                // Update hearts based on current streak
-                this.updateHearts(currentStreak);
-
-                // Also call global hearts update for consistency
-                if (window.updateHeartsDisplay) {
-                    window.updateHeartsDisplay(currentStreak);
                 }
             }
 
