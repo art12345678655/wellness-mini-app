@@ -1232,10 +1232,10 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        console.log('🔥 Streak data received:', data);
-                        const streakValue = data.current_streak || 0;
-                        this.updateStreakDisplay(streakValue);
-                        console.log('🔥 Streak updated to:', streakValue);
+                        console.log('🔥 Days since last meal log data received:', data);
+                        const daysSinceLastLog = data.days_since_last_meal_log || 0;
+                        this.updateStreakDisplay(daysSinceLastLog);
+                        console.log('🔥 Days since last meal log updated to:', daysSinceLastLog);
                     } else {
                         console.error('🔥 API error, status:', response.status);
                         this.updateStreakDisplay(0);
@@ -1246,50 +1246,43 @@
                 }
             }
 
-            updateStreakDisplay(streakDays) {
+            updateStreakDisplay(daysSinceLastLog) {
                 const streakElement = document.getElementById('streakValue');
                 if (streakElement) {
-                    streakElement.textContent = streakDays;
-                    console.log('Updated streak display to:', streakDays);
+                    streakElement.textContent = daysSinceLastLog;
+                    console.log('Updated days since last log display to:', daysSinceLastLog);
                 }
 
-                // Update hearts based on streak
-                this.updateHearts(streakDays);
+                // Update hearts based on days since last log
+                this.updateHearts(daysSinceLastLog);
 
                 // Also call global hearts update for consistency
                 if (window.updateHeartsDisplay) {
-                    window.updateHeartsDisplay(streakDays);
+                    window.updateHeartsDisplay(daysSinceLastLog);
                 }
             }
 
-            updateHearts(streakDays, hasLoggedToday = false) {
-                // Calculate how many full hearts to show based on your requirements:
-                // - Perfect streak (5+ days): 5 full hearts
-                // - Good streak (3-4 days): 5 full hearts
-                // - 1-2 days without logging: reduce hearts accordingly
-                // - 3+ days without logging: all broken
-                // - If user logs a meal today: restore one heart
+            updateHearts(daysSinceLastLog, hasLoggedToday = false) {
+                // Calculate how many full hearts to show based on days since last meal log:
+                // - 0 days (logged today): 5 full hearts, cat_waving.png
+                // - 1 day without logging: 3 full hearts, cat_1.png
+                // - 2 days without logging: 1 full heart, cat_2.png
+                // - 3+ days without logging: 0 full hearts, cat_3.png
 
-                let fullHearts = 5; // Default: perfect streak
+                let fullHearts = 5; // Default: logged today
 
-                if (streakDays === 0) {
-                    // No current streak - check how many days without logging
-                    // For now, assume 3+ days without logging = all broken
-                    fullHearts = 0;
-                } else if (streakDays === 1) {
-                    // 1 day streak - was missing for a while, now back
-                    fullHearts = 3; // 3 full hearts + 2 broken (as shown in your example)
-                } else if (streakDays === 2) {
-                    // 2 day streak - getting better
-                    fullHearts = 4; // 4 full hearts + 1 broken
-                } else if (streakDays >= 3) {
-                    // 3+ day streak = perfect
+                if (daysSinceLastLog === 0) {
+                    // Logged today - perfect!
                     fullHearts = 5; // All full hearts
-                }
-
-                // If user has logged today, ensure at least one more heart than broken
-                if (hasLoggedToday && fullHearts < 5) {
-                    fullHearts = Math.min(fullHearts + 1, 5);
+                } else if (daysSinceLastLog === 1) {
+                    // Missed 1 day
+                    fullHearts = 3; // 3 full hearts + 2 broken
+                } else if (daysSinceLastLog === 2) {
+                    // Missed 2 days
+                    fullHearts = 1; // 1 full heart + 4 broken
+                } else if (daysSinceLastLog >= 3) {
+                    // Missed 3+ days
+                    fullHearts = 0; // All broken hearts
                 }
 
                 // Update each heart image
@@ -1309,7 +1302,7 @@
                 // Update cat image based on heart status
                 this.updateCatImage(fullHearts);
 
-                console.log(`Updated hearts: ${fullHearts} full hearts, ${5 - fullHearts} broken hearts (streak: ${streakDays})`);
+                console.log(`Updated hearts: ${fullHearts} full hearts, ${5 - fullHearts} broken hearts (days since last log: ${daysSinceLastLog})`);
             }
 
             updateCatImage(fullHearts) {
@@ -2389,21 +2382,22 @@
 
             // Initialize hearts with default state (3 full, 2 broken as shown in example)
             // Set up a function that can be called from anywhere to update hearts
-            window.updateHeartsDisplay = function(streakDays, hasLoggedToday = false) {
+            window.updateHeartsDisplay = function(daysSinceLastLog, hasLoggedToday = false) {
+                // Calculate hearts based on days since last meal log:
+                // - 0 days: 5 full hearts
+                // - 1 day: 3 full hearts
+                // - 2 days: 1 full heart
+                // - 3+ days: 0 full hearts
                 let fullHearts = 5;
 
-                if (streakDays === 0) {
-                    fullHearts = 0; // All broken
-                } else if (streakDays === 1) {
-                    fullHearts = 3; // 3 full + 2 broken
-                } else if (streakDays === 2) {
-                    fullHearts = 4; // 4 full + 1 broken
-                } else if (streakDays >= 3) {
-                    fullHearts = 5; // All full
-                }
-
-                if (hasLoggedToday && fullHearts < 5) {
-                    fullHearts = Math.min(fullHearts + 1, 5);
+                if (daysSinceLastLog === 0) {
+                    fullHearts = 5; // Logged today - all full
+                } else if (daysSinceLastLog === 1) {
+                    fullHearts = 3; // Missed 1 day - 3 full + 2 broken
+                } else if (daysSinceLastLog === 2) {
+                    fullHearts = 1; // Missed 2 days - 1 full + 4 broken
+                } else if (daysSinceLastLog >= 3) {
+                    fullHearts = 0; // Missed 3+ days - all broken
                 }
 
                 // Update hearts
