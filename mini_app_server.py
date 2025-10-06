@@ -236,26 +236,26 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
         raise Exception(f"Failed to get historical nutrition data for user {user_id}: {str(e)}")
 
 async def get_user_streak_data(user_id: str) -> dict:
-    """Get user's days since last meal log from the database"""
+    """Get user's current streak from the database"""
     try:
-        logger.info(f"🔥 Getting days since last meal log for user {user_id}")
+        logger.info(f"🔥 Getting current streak for user {user_id}")
         user_telegram_id = int(user_id)
 
-        # Get user's days_since_last_meal_log from the database
-        result = supabase_client.client.table('users').select('days_since_last_meal_log').eq('user_id', user_telegram_id).execute()
+        # Get user's current_streak from the database
+        result = supabase_client.client.table('users').select('current_streak').eq('user_id', user_telegram_id).execute()
 
         if not result.data:
-            logger.warning(f"No user found for user {user_telegram_id}, returning days_since_last_meal_log 0")
-            return {'days_since_last_meal_log': 0}
+            logger.warning(f"No user found for user {user_telegram_id}, returning current_streak 0")
+            return {'current_streak': 0}
 
-        days_since_last_meal_log = result.data[0].get('days_since_last_meal_log', 0) or 0
-        logger.info(f"✅ User {user_telegram_id} has days_since_last_meal_log: {days_since_last_meal_log} days")
+        current_streak = result.data[0].get('current_streak', 0) or 0
+        logger.info(f"✅ User {user_telegram_id} has current_streak: {current_streak} days")
 
-        return {'days_since_last_meal_log': days_since_last_meal_log}
+        return {'current_streak': current_streak}
 
     except Exception as e:
-        logger.error(f"❌ Error getting days since last meal log for user {user_id}: {e}")
-        return {'days_since_last_meal_log': 0}
+        logger.error(f"❌ Error getting current streak for user {user_id}: {e}")
+        return {'current_streak': 0}
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_HEAD(self):
@@ -546,29 +546,29 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_json_response(fallback_response)
 
     def handle_api_streak_data(self, query_params):
-        """API endpoint to return user's days since last meal log"""
+        """API endpoint to return user's current streak"""
         try:
             # Get user_id from query parameters
             user_id = query_params.get('user_id', ['user_123'])[0]
-            logger.info(f"🔥 Days since last meal log API request for user: {user_id}")
+            logger.info(f"🔥 Current streak API request for user: {user_id}")
 
-            # Get days since last meal log from database
+            # Get current streak from database
             streak_data = asyncio.run(get_user_streak_data(user_id))
-            logger.info(f"📊 Days since last meal log for user {user_id}: {streak_data}")
+            logger.info(f"📊 Current streak for user {user_id}: {streak_data}")
 
             # Format response
             response = {
                 "user_id": user_id,
-                "days_since_last_meal_log": streak_data.get('days_since_last_meal_log', 0)
+                "current_streak": streak_data.get('current_streak', 0)
             }
 
             self.send_json_response(response)
         except Exception as e:
-            logger.error(f"❌ Days since last meal log API Error for user {user_id}: {e}")
+            logger.error(f"❌ Current streak API Error for user {user_id}: {e}")
             # Return fallback of 0 if API fails
             fallback_response = {
                 "user_id": user_id,
-                "days_since_last_meal_log": 0
+                "current_streak": 0
             }
             self.send_json_response(fallback_response)
 

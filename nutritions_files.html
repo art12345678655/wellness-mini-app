@@ -1232,10 +1232,10 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        console.log('🔥 Days since last meal log data received:', data);
-                        const daysSinceLastLog = data.days_since_last_meal_log || 0;
-                        this.updateStreakDisplay(daysSinceLastLog);
-                        console.log('🔥 Days since last meal log updated to:', daysSinceLastLog);
+                        console.log('🔥 Current streak data received:', data);
+                        const currentStreak = data.current_streak || 0;
+                        this.updateStreakDisplay(currentStreak);
+                        console.log('🔥 Current streak updated to:', currentStreak);
                     } else {
                         console.error('🔥 API error, status:', response.status);
                         this.updateStreakDisplay(0);
@@ -1246,19 +1246,19 @@
                 }
             }
 
-            updateStreakDisplay(daysSinceLastLog) {
+            updateStreakDisplay(currentStreak) {
                 const streakElement = document.getElementById('streakValue');
                 if (streakElement) {
-                    streakElement.textContent = daysSinceLastLog;
-                    console.log('Updated days since last log display to:', daysSinceLastLog);
+                    streakElement.textContent = currentStreak;
+                    console.log('Updated current streak display to:', currentStreak);
                 }
 
-                // Update hearts based on days since last log
-                this.updateHearts(daysSinceLastLog);
+                // Update hearts based on current streak
+                this.updateHearts(currentStreak);
 
                 // Also call global hearts update for consistency
                 if (window.updateHeartsDisplay) {
-                    window.updateHeartsDisplay(daysSinceLastLog);
+                    window.updateHeartsDisplay(currentStreak);
                 }
             }
 
