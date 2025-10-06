@@ -721,6 +721,15 @@
             background: linear-gradient(135deg, #444444 0%, #2a2a2a 100%);
         }
 
+        /* Sports Tiles Container */
+        .sports-tiles-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 15px auto;
+        }
+
         /* Sports Tile Styles */
         .sports-tile {
             width: 120px;
@@ -729,7 +738,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 15px auto;
             box-shadow:
                 0 8px 25px rgba(0, 0, 0, 0.3),
                 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -1057,9 +1065,17 @@
         <!-- Sports Text -->
         <div style="text-align: center; color: black; font-size: 24px; font-weight: 600; font-style: italic; margin-top: 15px;">Sports</div>
 
-        <!-- Sports Tile -->
-        <div class="sports-tile">
-            <img src="images/runagent.png" alt="Sports" class="sports-image">
+        <!-- Sports Tiles Container -->
+        <div class="sports-tiles-container">
+            <!-- Sports Tile -->
+            <div class="sports-tile">
+                <img src="images/runagent.png" alt="Sports" class="sports-image">
+            </div>
+
+            <!-- Addwhoop Tile -->
+            <div class="sports-tile">
+                <img src="images/addwhoop.png" alt="Add Whoop" class="sports-image">
+            </div>
         </div>
     </div>
 
