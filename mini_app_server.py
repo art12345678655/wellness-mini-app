@@ -241,25 +241,27 @@ async def get_user_streak_data(user_id: str) -> dict:
         logger.info(f"🔥 Getting streak data for user {user_id}")
         user_telegram_id = int(user_id)
 
-        # Get both current_streak and days_since_last_meal_log from the database
-        result = supabase_client.client.table('users').select('current_streak, days_since_last_meal_log').eq('user_id', user_telegram_id).execute()
+        # Get current_streak, days_since_last_meal_log, and coins from the database
+        result = supabase_client.client.table('users').select('current_streak, days_since_last_meal_log, coins').eq('user_id', user_telegram_id).execute()
 
         if not result.data:
             logger.warning(f"No user found for user {user_telegram_id}, returning default values")
-            return {'current_streak': 0, 'days_since_last_meal_log': 0}
+            return {'current_streak': 0, 'days_since_last_meal_log': 0, 'coins': 0}
 
         current_streak = result.data[0].get('current_streak', 0) or 0
         days_since_last_meal_log = result.data[0].get('days_since_last_meal_log', 0) or 0
-        logger.info(f"✅ User {user_telegram_id} - current_streak: {current_streak}, days_since_last_meal_log: {days_since_last_meal_log}")
+        coins = result.data[0].get('coins', 0) or 0
+        logger.info(f"✅ User {user_telegram_id} - current_streak: {current_streak}, days_since_last_meal_log: {days_since_last_meal_log}, coins: {coins}")
 
         return {
             'current_streak': current_streak,
-            'days_since_last_meal_log': days_since_last_meal_log
+            'days_since_last_meal_log': days_since_last_meal_log,
+            'coins': coins
         }
 
     except Exception as e:
         logger.error(f"❌ Error getting streak data for user {user_id}: {e}")
-        return {'current_streak': 0, 'days_since_last_meal_log': 0}
+        return {'current_streak': 0, 'days_since_last_meal_log': 0, 'coins': 0}
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_HEAD(self):
@@ -560,11 +562,12 @@ class RequestHandler(BaseHTTPRequestHandler):
             streak_data = asyncio.run(get_user_streak_data(user_id))
             logger.info(f"📊 Streak data for user {user_id}: {streak_data}")
 
-            # Format response with both values
+            # Format response with all three values
             response = {
                 "user_id": user_id,
                 "current_streak": streak_data.get('current_streak', 0),
-                "days_since_last_meal_log": streak_data.get('days_since_last_meal_log', 0)
+                "days_since_last_meal_log": streak_data.get('days_since_last_meal_log', 0),
+                "coins": streak_data.get('coins', 0)
             }
 
             self.send_json_response(response)
@@ -574,7 +577,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             fallback_response = {
                 "user_id": user_id,
                 "current_streak": 0,
-                "days_since_last_meal_log": 0
+                "days_since_last_meal_log": 0,
+                "coins": 0
             }
             self.send_json_response(fallback_response)
 

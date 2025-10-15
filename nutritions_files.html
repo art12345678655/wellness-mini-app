@@ -71,6 +71,18 @@
             color: #1a1a1a;
         }
 
+        .coin-icon {
+            width: 30px;
+            height: 30px;
+            margin-left: 8px;
+        }
+
+        .coin-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
         /* Simple Layout Container - FORCE HORIZONTAL */
         .layout-container {
             display: flex !important;
@@ -834,6 +846,8 @@
             <div class="streak-right">
                 <img src="images/stairs_streak_black.png" alt="Streak" class="streak-icon-top">
                 <span class="streak-number" id="streakValue">0</span>
+                <img src="images/coin.png" alt="Coins" class="coin-icon">
+                <span class="coin-number" id="coinValue">0</span>
             </div>
         </div>
 
@@ -1235,6 +1249,7 @@
                 if (!userId || userId === 'user_123') {
                     console.log('🔥 Invalid userId, skipping streak load');
                     this.updateStreakDisplay(0);
+                    this.updateCoinDisplay(0);
                     this.updateHearts(0);
                     return;
                 }
@@ -1258,22 +1273,28 @@
 
                         const currentStreak = data.current_streak || 0;
                         const daysSinceLastLog = data.days_since_last_meal_log || 0;
+                        const coins = data.coins || 0;
 
                         // Update streak number display (top right)
                         this.updateStreakDisplay(currentStreak);
 
+                        // Update coin display
+                        this.updateCoinDisplay(coins);
+
                         // Update hearts and cat based on days since last log
                         this.updateHearts(daysSinceLastLog);
 
-                        console.log(`🔥 Updated - Streak: ${currentStreak}, Days since last log: ${daysSinceLastLog}`);
+                        console.log(`🔥 Updated - Streak: ${currentStreak}, Days since last log: ${daysSinceLastLog}, Coins: ${coins}`);
                     } else {
                         console.error('🔥 API error, status:', response.status);
                         this.updateStreakDisplay(0);
+                        this.updateCoinDisplay(0);
                         this.updateHearts(0);
                     }
                 } catch (error) {
                     console.error('🔥 Network error:', error);
                     this.updateStreakDisplay(0);
+                    this.updateCoinDisplay(0);
                     this.updateHearts(0);
                 }
             }
@@ -1283,6 +1304,14 @@
                 if (streakElement) {
                     streakElement.textContent = currentStreak;
                     console.log('Updated current streak display to:', currentStreak);
+                }
+            }
+
+            updateCoinDisplay(coins) {
+                const coinElement = document.getElementById('coinValue');
+                if (coinElement) {
+                    coinElement.textContent = coins;
+                    console.log('Updated coin display to:', coins);
                 }
             }
 
