@@ -97,10 +97,10 @@ class NutritionDataHandler:
                 raise Exception(f"No user profile found for user {user_telegram_id}")
             
             # Get daily targets and convert Decimal to float (SAME AS /consumed command)
-            daily_calories = float(user_profile.get('calorie_target', 0))
-            daily_protein = float(user_profile.get('protein_target_g', 0))
-            daily_carbs = float(user_profile.get('carbs_target_g', 0))
-            daily_fats = float(user_profile.get('fat_target_g', 0))
+            daily_calories = float(user_profile.get('calorie_target') or 2000)
+            daily_protein = float(user_profile.get('protein_target_g') or 150)
+            daily_carbs = float(user_profile.get('carbs_target_g') or 250)
+            daily_fats = float(user_profile.get('fat_target_g') or 65)
             
             logger.info(f"REAL Daily targets - Calories: {daily_calories}, Protein: {daily_protein}, Carbs: {daily_carbs}, Fats: {daily_fats}")
             
@@ -159,10 +159,10 @@ async def get_historical_nutrition_data(user_id: str, days: int = 7) -> dict:
             raise Exception(f"User profile not found")
 
         # Get targets
-        daily_calories = float(user_profile.get('calorie_target', 2000))
-        daily_protein = float(user_profile.get('protein_target_g', 150))
-        daily_carbs = float(user_profile.get('carbs_target_g', 250))
-        daily_fats = float(user_profile.get('fat_target_g', 65))
+        daily_calories = float(user_profile.get('calorie_target') or 2000)
+        daily_protein = float(user_profile.get('protein_target_g') or 150)
+        daily_carbs = float(user_profile.get('carbs_target_g') or 250)
+        daily_fats = float(user_profile.get('fat_target_g') or 65)
 
         # Get REAL nutrition data directly from recent_daily_nutrition_summary view
         logger.info(f"🔍 DEBUG: Using recent_daily_nutrition_summary view for user_telegram_id={user_telegram_id}")
